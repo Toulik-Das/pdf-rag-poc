@@ -7,4 +7,3 @@ PyMuPDF
 langchain-openai
 langchain-experimental
 langchain[docarray]
-chromadb
