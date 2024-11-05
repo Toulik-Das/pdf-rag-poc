@@ -9,6 +9,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Dict, Generator
 
+
 # Function to initialize vector store
 def initialize_vectorstore(api_key: str):
     db_name = "pdf_knowledge_base"
