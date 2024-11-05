@@ -6,7 +6,5 @@ python-dotenv
 PyMuPDF
 langchain-openai
 langchain-experimental
-langchain-chroma
 langchain[docarray]
-protobuf==3.20.3
-pysqlite3-binary
+chroma
