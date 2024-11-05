@@ -1,7 +1,8 @@
 import os
 import tempfile
 from typing import Generator
-from langchain.document_loaders import PyMuPDFLoader
+#from langchain.document_loaders import PyMuPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
