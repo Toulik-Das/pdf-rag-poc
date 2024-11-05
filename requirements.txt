@@ -5,3 +5,4 @@ python-dotenv
 PyMuPDF
 langchain-openai
 langchain-community
+chromadb
