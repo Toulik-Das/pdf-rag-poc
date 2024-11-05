@@ -2,6 +2,11 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 import os
 from dotenv import load_dotenv
+import sys
+import pysqlite3
+
+sys.modules["sqlite3"] = pysqlite3
+
 
 # Load environment variables (if needed for other settings)
 load_dotenv()
