@@ -1,15 +1,13 @@
 import os
 import tempfile
-from typing import Generator
-#from langchain.document_loaders import PyMuPDFLoader
-from langchain_community.document_loaders import PyMuPDFLoader
+from langchain.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-#from langchain_chroma import Chroma
-from chromadb import Chroma
-from langchain.memory import ConversationBufferMemory
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
-from typing import List, Dict
+from langchain.memory import ConversationBufferMemory
+from typing import List, Dict, Generator
 
 # Function to initialize vector store
 def initialize_vectorstore(api_key: str):
