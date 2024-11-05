@@ -1,9 +1,12 @@
 streamlit
-langchain
 openai
-typing
+langchain
+langchain-community
 python-dotenv
 PyMuPDF
 langchain-openai
+langchain-experimental
 langchain-chroma
-langchain-community
+langchain[docarray]
+chromadb
+protobuf==3.20.3
