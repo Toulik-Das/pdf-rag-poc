@@ -4,5 +4,3 @@ openai
 typing
 python-dotenv
 PyMuPDF
-langchain-openai
-langchain_chroma
