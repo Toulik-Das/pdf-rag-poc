@@ -3,15 +3,12 @@ ipywidgets
 requests
 numpy
 pandas
-matplotlib
 gensim
-transformers
 accelerate
 sentencepiece
 bitsandbytes
 tqdm
 openai
-gradio
 langchain
 tiktoken
 faiss-cpu
@@ -23,11 +20,7 @@ datasets
 sentencepiece
 google.generativeai
 anthropic
-scikit-learn
 unstructured
 chromadb
-plotly
-jupyter-dash
-beautifulsoup4
 pydub
 PyMuPDF
