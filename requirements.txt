@@ -8,3 +8,4 @@ langchain-openai
 langchain-experimental
 langchain-chroma
 langchain[docarray]
+protobuf==3.20.3
