@@ -6,3 +6,4 @@ python-dotenv
 PyMuPDF
 langchain-openai
 langchain-chroma
+langchain-community
