@@ -30,3 +30,4 @@ plotly
 jupyter-dash
 beautifulsoup4
 pydub
+PyMuPDF
