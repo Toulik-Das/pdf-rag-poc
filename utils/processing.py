@@ -49,6 +49,10 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     retriever = vectorstore.as_retriever()
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
-    # Yield responses as a generator
-    for response in conversation_chain.stream({"question": user_input}):
-        yield response["answer"]
+    # Stream the response and yield chunks of the answer
+    response = conversation_chain.stream({"question": user_input})
+    
+    for chunk in response:
+        # Streamed response is a generator, directly access the message content
+        if "answer" in chunk:
+            yield chunk["answer"]
