@@ -74,9 +74,9 @@ if api_key:
                 st.write(f"**Q{i+1}:** {question}")
                 st.write(f"**A{i+1}:** {answer}")
 
-    except openai.error.AuthenticationError:
+    except openai.AuthenticationError:
         st.error("Invalid API key. Please check your API key and try again.")
-    except openai.error.OpenAIError as e:
+    except openai.APIError as e:
         st.error(f"OpenAI API error: {str(e)}")
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
