@@ -10,6 +10,7 @@ from firebase_admin import credentials, firestore
 # Load environment variables from .env file
 load_dotenv()
 
+
 # Retrieve the Google client ID, client secret, and cookie name from environment variables
 google_client_id = os.getenv("GOOGLE_CLIENT_ID")
 google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
