@@ -2,7 +2,6 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 import os
 from dotenv import load_dotenv
-import openai
 
 # Load environment variables (if needed for other settings)
 load_dotenv()
@@ -73,7 +72,7 @@ if api_key:
             for i, (question, answer) in enumerate(st.session_state["chat_history"]):
                 st.write(f"**Q{i+1}:** {question}")
                 st.write(f"**A{i+1}:** {answer}")
-                
+
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
 
