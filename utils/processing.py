@@ -46,7 +46,7 @@ def process_pdfs(uploaded_files) -> List:
 
 # Function to get chat response supporting both OpenAI and Gemini Flash 1.5
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
-    if model_name == "Gemini Flash 1.5":
+    if model_name == "Gemini Flash 1.5(Free Tier)":
         # Configure Gemini Flash 1.5 API key and session
         genai.configure(api_key=api_key)
 
