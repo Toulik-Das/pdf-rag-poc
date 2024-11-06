@@ -51,8 +51,11 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
 
     # Stream the response and yield chunks of the answer
     response = conversation_chain.stream({"question": user_input})
-    
+
+    # Correctly handle the streamed response
     for chunk in response:
-        # Streamed response is a generator, directly access the message content
-        if "answer" in chunk:
+        if isinstance(chunk, dict) and "answer" in chunk:
             yield chunk["answer"]
+        elif hasattr(chunk, 'text'):  # Handle the chunk when it has a text attribute
+            yield chunk.text
+
