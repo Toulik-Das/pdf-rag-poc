@@ -1,4 +1,3 @@
-import openai
 import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 from dotenv import load_dotenv
@@ -32,30 +31,17 @@ with st.sidebar:
 
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
-    try:
-        openai.api_key = api_key  # Set the API key for OpenAI
+    if uploaded_files:
+        st.write("Processing documents 🧾 ")
+        documents = process_pdfs(uploaded_files)
 
-        # Check the API key validity by making a simple API call (for example, list engines)
-        openai.Engine.list()  # This will check the validity of the API key
-        
-        if uploaded_files:
-            st.write("Processing documents 🧾 ")
-            documents = process_pdfs(uploaded_files)
-
-            if documents:
-                # Initialize vectorstore with documents
-                vectorstore = initialize_vectorstore(api_key, documents)
-                st.write(f"Uploaded and processed {len(documents)} documents into the knowledge base.")
-            else:
-                st.warning("No valid documents were found in the uploaded files.")
+        if documents:
+            # Initialize vectorstore with documents
+            vectorstore = initialize_vectorstore(api_key, documents)
+            st.write(f"Uploaded and processed {len(documents)} documents into the knowledge base.")
         else:
-            st.warning("Please upload PDF files to get started.")
-
-    except openai.error.AuthenticationError:  # Catch specific error for invalid API keys
-        st.error("Invalid API key. Please check your API key and try again.")
-    except openai.error.OpenAIError as e:  # Catch any other OpenAI-related errors
-        st.error(f"An error occurred with the OpenAI API: {str(e)}")
-
+            st.warning("No valid documents were found in the uploaded files.")
+    
     # Chat history management
     if "chat_history" not in st.session_state:
         st.session_state["chat_history"] = []
