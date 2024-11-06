@@ -8,13 +8,13 @@ load_dotenv()
 
 # Page configuration
 st.set_page_config(
-    page_title="📚 PDF Expert",
+    page_title="📚 QueryWise",
     page_icon="📘",
     layout="wide",
 )
 
 # Title and description
-st.title("📚 PDF Expert")
+st.title("QueryWise 🧠")
 st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
