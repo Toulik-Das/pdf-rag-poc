@@ -48,19 +48,65 @@ if api_key:
     if "show_chat_history" not in st.session_state:
         st.session_state["show_chat_history"] = False
 
+    # Style the chat window using custom CSS
+    st.markdown("""
+    <style>
+        .chat-box {
+            width: 100%;
+            max-width: 700px;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow-y: scroll;
+            background-color: #f7f7f7;
+        }
+        .chat-box .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #d9fdd3;
+            align-self: flex-end;
+        }
+        .gpt-message {
+            background-color: #e0e0e0;
+            align-self: flex-start;
+        }
+        .input-container {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # User Input
     user_input = st.text_input("Ask a question about the content in your PDFs:")
-    
+
+    # Display chat in a "chat box" style
+    with st.container():
+        # Display all chat history
+        st.markdown('<div class="chat-box">', unsafe_allow_html=True)
+
+        # Display previous messages (question and answer)
+        for i, (question, answer) in enumerate(st.session_state["chat_history"]):
+            st.markdown(f'<div class="message user-message">{question}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="message gpt-message">{answer}</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Submit question and get model answer
     if user_input:
         # Get chat response (no streaming, just full response)
         response_text = get_chat_response(user_input, vectorstore, selected_model, api_key)
-        
-        # Display response and save to chat history
-        st.write("### Response")
-        st.write(response_text)
-        
-        # Save question and response to session state
+
+        # Display the new response and add to chat history
         st.session_state["chat_history"].append((user_input, response_text))
-    
+
     # Sidebar to show chat history
     with st.sidebar:
         # Toggle chat history visibility
