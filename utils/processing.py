@@ -1,5 +1,6 @@
 import os 
 import tempfile
+import asyncio
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -43,21 +44,25 @@ def process_pdfs(uploaded_files) -> List:
     return documents
 
 # Function to get chat response (streaming) with explicit API key
-def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
+async def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
+    # Initialize the OpenAI LLM with streaming enabled
     llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7, stream=True)
+    
+    # Memory for the conversation
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    
+    # Get the retriever from the vectorstore
     retriever = vectorstore.as_retriever()
+
+    # Create the conversation chain
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
-    # Stream the response and yield chunks of the answer
-    response = conversation_chain.stream({"question": user_input})
-
-    # Correctly handle the streamed response
-    for chunk in response:
-        # Access the message text directly in case the chunk has a 'text' attribute
+    # Start streaming the response asynchronously
+    async for chunk in conversation_chain.stream({"question": user_input}):
+        # Ensure we're getting the right content from the chunk
         if hasattr(chunk, 'text'):
             yield chunk.text
+        elif isinstance(chunk, dict) and 'answer' in chunk:
+            yield chunk['answer']
         else:
-            # If the chunk has an 'answer' attribute, yield it
-            yield chunk.get("answer", "No answer found in this chunk.")
-
+            yield "Error processing chunk."
