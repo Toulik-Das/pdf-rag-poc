@@ -24,7 +24,7 @@ with st.sidebar:
     selected_model = st.selectbox("Select a model:", model_options)
 
     # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
-    if selected_model == "gemini-1.5-flash":
+    if selected_model == "Gemini Flash 1.5(Free Tier)":
         api_key = st.secrets["api_keys"]["gemini_key"]
     else:
         # Prompt user to input OpenAI API key for other models
