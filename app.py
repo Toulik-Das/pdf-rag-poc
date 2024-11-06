@@ -39,10 +39,10 @@ if api_key:
         st.session_state["chat_history"] = []
 
     user_input = st.text_input("Ask a question about the content in your PDFs:")
-    if user_input and 'vectorstore' in locals():
+    if user_input:
         response_placeholder = st.empty()  # Placeholder for streaming response
         response_text = ""  # To accumulate streamed responses
-
+    
         # Stream the response
         for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
             response_text += chunk  # Accumulate streamed text
