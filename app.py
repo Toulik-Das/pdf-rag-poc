@@ -8,13 +8,13 @@ load_dotenv()
 
 # Page configuration
 st.set_page_config(
-    page_title="PDF-based RAG Knowledge Worker",
-    page_icon="📚",
+    page_title="📚 PDF Expert",
+    page_icon="📘",
     layout="wide",
 )
 
 # Title and description
-st.title("PDF-based RAG Knowledge Worker")
+st.title("📚 PDF Expert")
 st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
@@ -62,14 +62,14 @@ if api_key:
         with st.chat_message("assistant"):
             response_placeholder = st.empty()
             response_text = ""
-            
-            # Get and display the response in a streaming fashion
+
+            # Generate and display response in markdown format for proper spacing
             for word in get_chat_response(user_input, vectorstore, selected_model, api_key).split():
                 response_text += word + " "
-                response_placeholder.markdown(response_text)
-                time.sleep(0.05)  # Simulate streaming
+                response_placeholder.markdown(response_text)  # Render with markdown for spacing
+                time.sleep(0.05)  # Simulate streaming effect
             
-            # Save the assistant's final response in the chat history
+            # Save the assistant's final response in markdown format for chat history
             st.session_state["chat_history"].append({"role": "assistant", "content": response_text})
 
     # Sidebar to toggle chat history visibility
@@ -87,8 +87,7 @@ if api_key:
                 if message["role"] == "user":
                     st.write(f"**Q{i+1}:** {message['content']}")
                 else:
-                    st.write(f"**A{i+1}:**")
-                    st.markdown(message['content'], unsafe_allow_html=True)
+                    st.write(f"**A{i+1}:** {message['content']}")
 
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
