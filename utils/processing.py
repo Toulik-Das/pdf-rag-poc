@@ -43,7 +43,7 @@ def process_pdfs(uploaded_files) -> List:
     return documents
 
 # Function to get chat response (streaming) with explicit API key
-def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str) -> Generator[str, None, None]:
+def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
     llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7, stream=True)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     retriever = vectorstore.as_retriever()
@@ -54,8 +54,10 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
 
     # Correctly handle the streamed response
     for chunk in response:
-        if isinstance(chunk, dict) and "answer" in chunk:
-            yield chunk["answer"]
-        elif hasattr(chunk, 'text'):  # Handle the chunk when it has a text attribute
+        # Access the message text directly in case the chunk has a 'text' attribute
+        if hasattr(chunk, 'text'):
             yield chunk.text
+        else:
+            # If the chunk has an 'answer' attribute, yield it
+            yield chunk.get("answer", "No answer found in this chunk.")
 
