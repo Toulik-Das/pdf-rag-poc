@@ -44,7 +44,7 @@ if api_key:
         response_text = ""  # To accumulate streamed responses
         
         # Stream the response
-        for chunk in get_chat_response(user_input, vectorstore, selected_model):
+        for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
             response_text += chunk  # Accumulate streamed text
             response_placeholder.write(response_text)  # Update the UI with the new chunk
         
