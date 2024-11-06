@@ -20,7 +20,7 @@ st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
     # Model selection for OpenAI
-    model_options = ["gpt-4o-mini", "gpt-4", "gemini-1.5-flash"]
+    model_options = ["gpt-4o-mini", "gpt-4", "Gemini Flash 1.5(Free Tier)"]
     selected_model = st.selectbox("Select a model:", model_options)
 
     # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
