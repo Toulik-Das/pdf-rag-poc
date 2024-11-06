@@ -32,7 +32,7 @@ with st.sidebar:
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     if uploaded_files:
-        st.write("Processing documents...")
+        st.write("Processing documents lense 🧾 ")
         documents = process_pdfs(uploaded_files)
 
         if documents:
