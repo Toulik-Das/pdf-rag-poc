@@ -43,10 +43,10 @@ def process_pdfs(uploaded_files) -> List:
     
     return documents
 
-# Function to get chat response (streaming) with explicit API key
-async def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
-    # Initialize the OpenAI LLM with streaming enabled
-    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7, stream=True)
+# Function to get chat response without streaming
+def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str) -> str:
+    # Initialize the OpenAI LLM
+    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7)
     
     # Memory for the conversation
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -57,12 +57,7 @@ async def get_chat_response(user_input: str, vectorstore, model_name: str, api_k
     # Create the conversation chain
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
-    # Start streaming the response asynchronously
-    async for chunk in conversation_chain.stream({"question": user_input}):
-        # Ensure we're getting the right content from the chunk
-        if hasattr(chunk, 'text'):
-            yield chunk.text
-        elif isinstance(chunk, dict) and 'answer' in chunk:
-            yield chunk['answer']
-        else:
-            yield "Error processing chunk."
+    # Get the response (non-streaming)
+    response = conversation_chain.run({"question": user_input})
+    
+    return response
