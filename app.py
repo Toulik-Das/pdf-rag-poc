@@ -2,7 +2,6 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 import os
 from dotenv import load_dotenv
-import sys
 
 
 # Load environment variables (if needed for other settings)
@@ -52,11 +51,13 @@ if api_key:
         # Save question and response to session state
         st.session_state["chat_history"].append((user_input, response_text))
     
-    # Display chat history
-    if st.session_state["chat_history"]:
-        st.write("### Chat History")
-        for i, (question, answer) in enumerate(st.session_state["chat_history"]):
-            st.write(f"**Q{i+1}:** {question}")
-            st.write(f"**A{i+1}:** {answer}")
+    # Sidebar to show chat history
+    with st.sidebar:
+        # Button to toggle chat history visibility
+        if st.button("Show Chat History"):
+            st.write("### Chat History")
+            for i, (question, answer) in enumerate(st.session_state["chat_history"]):
+                st.write(f"**Q{i+1}:** {question}")
+                st.write(f"**A{i+1}:** {answer}")
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
