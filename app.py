@@ -3,10 +3,20 @@ from utils.processing import process_pdfs, initialize_vectorstore, get_chat_resp
 import os
 from dotenv import load_dotenv
 import sys
+import asyncio
+
 
 # Load environment variables (if needed for other settings)
 load_dotenv()
 
+async def stream_chat_response(user_input, vectorstore, selected_model, api_key):
+    response_text = ""
+    response_placeholder = st.empty()  # Placeholder for streaming response
+
+    async for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+        response_text += chunk  # Accumulate streamed text
+        response_placeholder.write(response_text)  # Update the UI
+        
 # Set up Streamlit UI
 st.title("PDF-based RAG Knowledge Worker")
 st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
@@ -39,14 +49,9 @@ if api_key:
         st.session_state["chat_history"] = []
 
     user_input = st.text_input("Ask a question about the content in your PDFs:")
-   if user_input:
-        response_placeholder = st.empty()  # Placeholder for streaming response
-        response_text = ""  # To accumulate streamed responses
-        
-        # Stream the response
-        for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
-            response_text += chunk  # Accumulate streamed text
-            response_placeholder.write(response_text)  # Update the UI with the new chunk
+    
+    if user_input:
+        asyncio.run(stream_chat_response(user_input, vectorstore, selected_model, api_key))
 
         st.session_state["chat_history"].append((user_input, response_text))
     
