@@ -31,63 +31,71 @@ with st.sidebar:
 
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
-    if uploaded_files:
-        st.write("Processing documents 🧾 ")
-        documents = process_pdfs(uploaded_files)
+    try:
+        if uploaded_files:
+            st.write("Processing documents 🧾 ")
+            documents = process_pdfs(uploaded_files)
 
-        if documents:
-            # Initialize vectorstore with documents
-            vectorstore = initialize_vectorstore(api_key, documents)
-            st.write(f"Uploaded and processed {len(documents)} documents into the knowledge base.")
-        else:
-            st.warning("No valid documents were found in the uploaded files.")
-    
-    # Chat history management
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = []
+            if documents:
+                # Initialize vectorstore with documents
+                vectorstore = initialize_vectorstore(api_key, documents)
+                st.write(f"Uploaded and processed {len(documents)} documents into the knowledge base.")
+            else:
+                st.warning("No valid documents were found in the uploaded files.")
+        
+        # Chat history management
+        if "chat_history" not in st.session_state:
+            st.session_state["chat_history"] = []
 
-    # Display chat messages from history
-    for message in st.session_state["chat_history"]:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        # Display chat messages from history
+        for message in st.session_state["chat_history"]:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
-    # Accept user input
-    if user_input := st.chat_input("Ask a question about the content in your PDFs"):
-        # Add user message to chat history
-        st.session_state["chat_history"].append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
+        # Accept user input
+        if user_input := st.chat_input("Ask a question about the content in your PDFs"):
+            # Add user message to chat history
+            st.session_state["chat_history"].append({"role": "user", "content": user_input})
+            with st.chat_message("user"):
+                st.markdown(user_input)
 
-        # Display assistant response with simulated streaming
-        with st.chat_message("assistant"):
-            response_placeholder = st.empty()
-            response_text = ""
+            # Display assistant response with simulated streaming
+            with st.chat_message("assistant"):
+                response_placeholder = st.empty()
+                response_text = ""
 
-            # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
-            for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
-                response_text += chunk
-                response_placeholder.markdown(response_text)  # Update full markdown output so far
-                time.sleep(0.05)  # Simulate streaming effect
-            
-            # Save the assistant's final response in markdown format for chat history
-            st.session_state["chat_history"].append({"role": "assistant", "content": response_text})
+                try:
+                    # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
+                    for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                        response_text += chunk
+                        response_placeholder.markdown(response_text)  # Update full markdown output so far
+                        time.sleep(0.05)  # Simulate streaming effect
+                except Exception as e:
+                    st.error(f"Error while fetching the response: {e}")
+                    response_placeholder.markdown("There was an error processing your request.")
 
-    # Sidebar to toggle chat history visibility
-    with st.sidebar:
-        if "show_chat_history" not in st.session_state:
-            st.session_state["show_chat_history"] = False
+                # Save the assistant's final response in markdown format for chat history
+                st.session_state["chat_history"].append({"role": "assistant", "content": response_text})
 
-        if st.button("Show/Hide Chat History"):
-            st.session_state["show_chat_history"] = not st.session_state["show_chat_history"]
+        # Sidebar to toggle chat history visibility
+        with st.sidebar:
+            if "show_chat_history" not in st.session_state:
+                st.session_state["show_chat_history"] = False
 
-        # Show chat history in sidebar if toggled on
-        if st.session_state["show_chat_history"]:
-            st.write("### Chat History")
-            for i, message in enumerate(st.session_state["chat_history"]):
-                if message["role"] == "user":
-                    st.write(f"**Q{i+1}:** {message['content']}")
-                else:
-                    st.write(f"**A{i+1}:** {message['content']}")
+            if st.button("Show/Hide Chat History"):
+                st.session_state["show_chat_history"] = not st.session_state["show_chat_history"]
+
+            # Show chat history in sidebar if toggled on
+            if st.session_state["show_chat_history"]:
+                st.write("### Chat History")
+                for i, message in enumerate(st.session_state["chat_history"]):
+                    if message["role"] == "user":
+                        st.write(f"**Q{i+1}:** {message['content']}")
+                    else:
+                        st.write(f"**A{i+1}:** {message['content']}")
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
