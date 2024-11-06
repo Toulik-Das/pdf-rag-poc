@@ -5,5 +5,3 @@ openai
 PyMuPDF
 langchain_community
 tiktoken
-streamlit-authenticator
-firebase-admin
