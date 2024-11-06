@@ -52,8 +52,8 @@ if api_key:
         else:
             st.warning("Please upload PDF files to get started.")
 
-    except openai.error.AuthenticationError:
-        st.error("Invalid API key. Please check your API key and try again.")
+    except Exception as e::
+         st.error(f"An unexpected error occurred: {str(e)}")
     
     # Chat history management
     if "chat_history" not in st.session_state:
