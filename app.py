@@ -2,7 +2,7 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 import os
 from dotenv import load_dotenv
-from openai import OpenAIError  # Import OpenAIError from openai
+import openai
 
 # Load environment variables (if needed for other settings)
 load_dotenv()
@@ -74,7 +74,9 @@ if api_key:
                 st.write(f"**Q{i+1}:** {question}")
                 st.write(f"**A{i+1}:** {answer}")
 
-    except OpenAIError as e:
+    except openai.error.AuthenticationError:
+        st.error("Invalid API key. Please check your API key and try again.")
+    except openai.error.OpenAIError as e:
         st.error(f"OpenAI API error: {str(e)}")
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
