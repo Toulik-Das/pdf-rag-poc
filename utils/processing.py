@@ -1,34 +1,25 @@
-import os
+import os 
 import tempfile
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from typing import List, Dict, Generator
-from chromadb.config import Settings
+from typing import List, Generator
 
-
-# Function to initialize vector store
-# def initialize_vectorstore(api_key: str):
-#     db_name = "pdf_knowledge_base"
-#     embeddings = OpenAIEmbeddings(api_key=api_key)
-    
-#     if os.path.exists(db_name):
-#         vectorstore = Chroma(persist_directory=db_name, embedding_function=embeddings)
-#     else:
-#         vectorstore = Chroma(persist_directory=db_name, embedding_function=embeddings)
-        
-#     return vectorstore
+# Function to initialize vector store with FAISS
 def initialize_vectorstore(api_key: str):
     db_name = "pdf_knowledge_base"
     embeddings = OpenAIEmbeddings(api_key=api_key)
 
-    # Initialize with settings if required
-    settings = Settings(persist_directory=db_name)
-    vectorstore = Chroma(persist_directory=db_name, embedding_function=embeddings, client_settings=settings)
+    # Initialize the FAISS vectorstore
+    if os.path.exists(f"{db_name}.faiss"):
+        vectorstore = FAISS.load_local(db_name, embeddings)
+    else:
+        vectorstore = FAISS.from_documents([], embeddings)
+        vectorstore.save_local(db_name)
     
     return vectorstore
 
