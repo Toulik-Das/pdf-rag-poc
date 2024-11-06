@@ -22,6 +22,7 @@ selected_model = st.selectbox("Select a model:", model_options)
 if api_key:
     # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
+    
     if uploaded_files:
         st.write("Processing documents...")
         documents = process_pdfs(uploaded_files)
@@ -29,7 +30,6 @@ if api_key:
         if documents:
             # Initialize vectorstore with documents
             vectorstore = initialize_vectorstore(api_key, documents)
-
             st.write(f"Uploaded and processed {len(documents)} documents into the knowledge base.")
         else:
             st.warning("No valid documents were found in the uploaded files.")
@@ -42,12 +42,12 @@ if api_key:
     if user_input and 'vectorstore' in locals():
         response_placeholder = st.empty()  # Placeholder for streaming response
         response_text = ""  # To accumulate streamed responses
-        
+
         # Stream the response
         for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
             response_text += chunk  # Accumulate streamed text
             response_placeholder.write(response_text)  # Update the UI with the new chunk
-        
+
         st.session_state["chat_history"].append((user_input, response_text))
     
     # Display chat history
