@@ -1,8 +1,8 @@
+import openai
 import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 from dotenv import load_dotenv
 import time
-import openai  # Import OpenAI to handle authentication errors
 
 # Load environment variables
 load_dotenv()
@@ -32,13 +32,12 @@ with st.sidebar:
 
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
-    # Check if the API key is valid
     try:
-        openai.api_key = api_key  # Attempt to set the API key for OpenAI
+        openai.api_key = api_key  # Set the API key for OpenAI
 
         # Check the API key validity by making a simple API call (for example, list engines)
-        openai.Engine.list()
-
+        openai.Engine.list()  # This will check the validity of the API key
+        
         if uploaded_files:
             st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
@@ -52,9 +51,11 @@ if api_key:
         else:
             st.warning("Please upload PDF files to get started.")
 
-    except openai.error.AuthenticationError:
+    except openai.error.AuthenticationError:  # Catch specific error for invalid API keys
         st.error("Invalid API key. Please check your API key and try again.")
-    
+    except openai.error.OpenAIError as e:  # Catch any other OpenAI-related errors
+        st.error(f"An error occurred with the OpenAI API: {str(e)}")
+
     # Chat history management
     if "chat_history" not in st.session_state:
         st.session_state["chat_history"] = []
