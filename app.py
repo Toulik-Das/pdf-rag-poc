@@ -2,6 +2,7 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 from dotenv import load_dotenv
 import time
+import google.generativeai as genai  # Gemini integration
 
 # Load environment variables
 load_dotenv()
@@ -15,11 +16,11 @@ st.set_page_config(
 
 # Title and description
 st.title("QueryWise 🧠")
-st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
+st.write("Upload PDFs, ask questions, and get expert answers powered by GPT or Gemini Flash 1.5.")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
-    # Model selection for OpenAI
+    # Model selection for OpenAI and Gemini
     model_options = ["gpt-4o-mini", "gpt-4", "Gemini Flash 1.5(Free Tier)"]
     selected_model = st.selectbox("Select a model:", model_options)
 
@@ -32,6 +33,27 @@ with st.sidebar:
     
     # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
+
+# Function to send chat input to Gemini Flash 1.5 (Free Tier)
+def get_gemini_response(user_input: str):
+    try:
+        # Configure Gemini Flash 1.5 API key
+        genai.configure(api_key=api_key)
+
+        # Create a chat session for Gemini
+        chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash").start_chat(
+            history=[
+                {"role": "user", "parts": [user_input]},
+            ]
+        )
+
+        # Send message and receive response
+        response = chat_session.send_message(user_input)
+
+        return response.text
+    except Exception as e:
+        st.error(f"Error while fetching the Gemini response: {e}")
+        return "There was an error processing your request with Gemini Flash 1.5."
 
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
@@ -69,11 +91,16 @@ if api_key:
                 response_text = ""
 
                 try:
-                    # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
-                    for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
-                        response_text += chunk
-                        response_placeholder.markdown(response_text)  # Update full markdown output so far
-                        time.sleep(0.05)  # Simulate streaming effect
+                    if selected_model == "Gemini Flash 1.5(Free Tier)":
+                        # Get and display the response from Gemini Flash 1.5
+                        response_text = get_gemini_response(user_input)
+                    else:
+                        # Get and display the response for GPT-based models
+                        for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                            response_text += chunk
+                            response_placeholder.markdown(response_text)  # Update full markdown output so far
+                            time.sleep(0.05)  # Simulate streaming effect
+
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
