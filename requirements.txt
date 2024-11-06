@@ -5,3 +5,4 @@ openai
 PyMuPDF
 langchain_community
 tiktoken
+google-generativeai
