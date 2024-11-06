@@ -52,7 +52,7 @@ if api_key:
         else:
             st.warning("Please upload PDF files to get started.")
 
-    except Exception as e::
+    except Exception as e:
          st.error(f"An unexpected error occurred: {str(e)}")
     
     # Chat history management
