@@ -7,6 +7,12 @@ from dotenv import load_dotenv
 # Load environment variables (if needed for other settings)
 load_dotenv()
 
+st.set_page_config(
+        page_title="PDF-based RAG Knowledge Worker",
+        page_icon="📚",
+        layout="wide",
+    )
+
 # Set up Streamlit UI
 st.title("PDF-based RAG Knowledge Worker")
 st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
