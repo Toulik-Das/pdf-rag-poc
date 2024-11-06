@@ -1,9 +1,5 @@
 streamlit
 langchain
+faiss-cpu
 openai
-python-dotenv
 PyMuPDF
-langchain-openai
-langchain-community
-chromadb
-pysqlite3-binary
