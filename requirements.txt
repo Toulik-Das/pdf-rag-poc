@@ -4,3 +4,4 @@ faiss-cpu
 openai
 PyMuPDF
 langchain_community
+tiktoken
