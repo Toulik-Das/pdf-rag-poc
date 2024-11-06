@@ -1,34 +1,34 @@
 import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
-import os
 from dotenv import load_dotenv
-
 
 # Load environment variables (if needed for other settings)
 load_dotenv()
 
 st.set_page_config(
-        page_title="PDF-based RAG Knowledge Worker",
-        page_icon="📚",
-        layout="wide",
-    )
+    page_title="PDF-based RAG Knowledge Worker",
+    page_icon="📚",
+    layout="wide",
+)
 
 # Set up Streamlit UI
 st.title("PDF-based RAG Knowledge Worker")
 st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 
-# Input for OpenAI API Key
-api_key = st.text_input("Enter your OpenAI API Key:", type="password")
-
-# Model selection for OpenAI
-model_options = ["gpt-4o-mini", "gpt-4"]
-selected_model = st.selectbox("Select a model:", model_options)
+# Sidebar for API Key, PDF upload, and Model Selection
+with st.sidebar:
+    # Input for OpenAI API Key
+    api_key = st.text_input("Enter your OpenAI API Key:", type="password")
+    
+    # Model selection for OpenAI
+    model_options = ["gpt-4o-mini", "gpt-4"]
+    selected_model = st.selectbox("Select a model:", model_options)
+    
+    # Process PDF upload
+    uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
 
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
-    # Process PDF upload
-    uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
-    
     if uploaded_files:
         st.write("Processing documents...")
         documents = process_pdfs(uploaded_files)
