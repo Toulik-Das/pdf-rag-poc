@@ -73,11 +73,7 @@ if api_key:
             for i, (question, answer) in enumerate(st.session_state["chat_history"]):
                 st.write(f"**Q{i+1}:** {question}")
                 st.write(f"**A{i+1}:** {answer}")
-
-    except openai.APIConnectionError:
-        st.error("Invalid API key. Please check your API key and try again.")
-    except openai.APIError as e:
-        st.error(f"OpenAI API error: {str(e)}")
+                
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
 
