@@ -43,8 +43,8 @@ def process_pdfs(uploaded_files) -> List:
     return documents
 
 # Function to get chat response (streaming)
-def get_chat_response(user_input: str, vectorstore, model_name: str) -> Generator[str, None, None]:
-    llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model_name=model_name, temperature=0.7, stream=True)
+def get_chat_response(user_input: str, vectorstore, model_name: str, ip_api_key: str) -> Generator[str, None, None, None]:
+    llm = ChatOpenAI(api_key=ip_api_key, model_name=model_name, temperature=0.7, stream=True)
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     retriever = vectorstore.as_retriever()
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
