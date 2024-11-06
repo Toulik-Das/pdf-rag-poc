@@ -87,7 +87,8 @@ if api_key:
                 if message["role"] == "user":
                     st.write(f"**Q{i+1}:** {message['content']}")
                 else:
-                    st.write(f"**A{i+1}:** {message['content']}")
+                    st.write(f"**A{i+1}:**")
+                    st.markdown(message['content'], unsafe_allow_html=True)
 
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
