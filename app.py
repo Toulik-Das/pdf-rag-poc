@@ -2,7 +2,7 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 import os
 from dotenv import load_dotenv
-import openai
+from openai import OpenAIError  # Import OpenAIError from openai
 
 # Load environment variables (if needed for other settings)
 load_dotenv()
@@ -22,8 +22,10 @@ selected_model = st.selectbox("Select a model:", model_options)
 # Initialize the vector store only if the API key is provided
 if api_key:
     try:
-        # Validate the API key by making a test request
+        # Set OpenAI API key
         openai.api_key = api_key
+
+        # Validate the API key by making a test request
         openai.Model.list()  # This will raise an exception if the key is invalid
 
         # Initialize the vector store
@@ -72,9 +74,7 @@ if api_key:
                 st.write(f"**Q{i+1}:** {question}")
                 st.write(f"**A{i+1}:** {answer}")
 
-    except openai.error.AuthenticationError:
-        st.error("Invalid API key. Please check your API key and try again.")
-    except openai.error.OpenAIError as e:
+    except OpenAIError as e:
         st.error(f"OpenAI API error: {str(e)}")
     except Exception as e:
         st.error(f"An unexpected error occurred: {str(e)}")
