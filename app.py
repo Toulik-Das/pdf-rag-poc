@@ -63,10 +63,10 @@ if api_key:
             response_placeholder = st.empty()
             response_text = ""
 
-            # Generate and display response in markdown format for proper spacing
-            for word in get_chat_response(user_input, vectorstore, selected_model, api_key).split():
-                response_text += word + " "
-                response_placeholder.markdown(response_text)  # Render with markdown for spacing
+            # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
+            for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                response_text += chunk
+                response_placeholder.markdown(response_text)  # Update full markdown output so far
                 time.sleep(0.05)  # Simulate streaming effect
             
             # Save the assistant's final response in markdown format for chat history
