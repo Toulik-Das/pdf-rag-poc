@@ -26,7 +26,8 @@ with st.sidebar:
 
     # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
     if selected_model == "Gemini Flash 1.5(Free Tier)":
-        api_key = st.secrets["api_keys"]["gemini_key"]
+        gemini_api_key = st.secrets["api_keys"]["gemini_key"]
+        api_key = st.text_input("Enter your OpenAI API Key(To Generate Embeddings) :", type="password")
     else:
         # Prompt user to input OpenAI API key for other models
         api_key = st.text_input("Enter your OpenAI API Key:", type="password")
@@ -38,7 +39,7 @@ with st.sidebar:
 def get_gemini_response(user_input: str):
     try:
         # Configure Gemini Flash 1.5 API key
-        genai.configure(api_key=api_key)
+        genai.configure(api_key=gemini_api_key)
 
         # Create a chat session for Gemini
         chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash").start_chat(
@@ -93,7 +94,11 @@ if api_key:
                 try:
                     if selected_model == "Gemini Flash 1.5(Free Tier)":
                         # Get and display the response from Gemini Flash 1.5
-                        response_text = get_gemini_response(user_input)
+                        # response_text = get_gemini_response(user_input)
+                         for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
+                            response_text += chunk
+                            response_placeholder.markdown(response_text)  # Update full markdown output so far
+                            time.sleep(0.05)  # Simulate streaming effect
                     else:
                         # Get and display the response for GPT-based models
                         for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
