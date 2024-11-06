@@ -19,12 +19,16 @@ st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
-    # Input for OpenAI API Key
-    api_key = st.text_input("Enter your OpenAI API Key:", type="password")
-    
     # Model selection for OpenAI
-    model_options = ["gpt-4o-mini", "gpt-4"]
+    model_options = ["gpt-4o-mini", "gpt-4", "gemini-1.5-flash"]
     selected_model = st.selectbox("Select a model:", model_options)
+
+    # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
+    if selected_model == "gemini-1.5-flash":
+        api_key = st.secrets["api_keys"]["gemini_key"]
+    else:
+        # Prompt user to input OpenAI API key for other models
+        api_key = st.text_input("Enter your OpenAI API Key:", type="password")
     
     # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
