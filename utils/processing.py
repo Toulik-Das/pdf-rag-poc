@@ -9,17 +9,21 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Generator
 
-# Function to initialize vector store with FAISS
-def initialize_vectorstore(api_key: str):
+# Function to initialize vector store with FAISS only if documents are present
+def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
     db_name = "pdf_knowledge_base"
     embeddings = OpenAIEmbeddings(api_key=api_key)
-
-    # Initialize the FAISS vectorstore
+    
     if os.path.exists(f"{db_name}.faiss"):
+        # Load the existing FAISS index
         vectorstore = FAISS.load_local(db_name, embeddings)
     else:
-        vectorstore = FAISS.from_documents([], embeddings)
-        vectorstore.save_local(db_name)
+        if documents:
+            # Create the FAISS index only if there are documents to embed
+            vectorstore = FAISS.from_documents(documents, embeddings)
+            vectorstore.save_local(db_name)
+        else:
+            raise ValueError("No documents found to initialize the FAISS vector store.")
     
     return vectorstore
 
