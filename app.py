@@ -44,6 +44,10 @@ if api_key:
     if "chat_history" not in st.session_state:
         st.session_state["chat_history"] = []
 
+    # Initialize a flag for toggling chat history visibility
+    if "show_chat_history" not in st.session_state:
+        st.session_state["show_chat_history"] = False
+
     user_input = st.text_input("Ask a question about the content in your PDFs:")
     
     if user_input:
@@ -59,8 +63,11 @@ if api_key:
     
     # Sidebar to show chat history
     with st.sidebar:
-        # Button to toggle chat history visibility
-        if st.button("Show Chat History"):
+        # Toggle chat history visibility
+        if st.button("Show/Hide Chat History"):
+            st.session_state["show_chat_history"] = not st.session_state["show_chat_history"]
+
+        if st.session_state["show_chat_history"]:
             st.write("### Chat History")
             for i, (question, answer) in enumerate(st.session_state["chat_history"]):
                 st.write(f"**Q{i+1}:** {question}")
