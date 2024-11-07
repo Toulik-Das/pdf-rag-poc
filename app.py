@@ -16,7 +16,7 @@ st.set_page_config(
 
 # Title and description
 st.title("QueryWise 🧠")
-st.write("Upload PDFs, ask questions, and get expert answers powered by GPT or Gemini Flash 1.5.")
+st.write("Upload PDFs, ask questions, and get expert answers powered by GPT or Gemini Flash 1.5(Free Tier).")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
