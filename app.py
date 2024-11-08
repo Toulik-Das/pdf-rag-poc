@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response,initialize_pinecone_vectorstore
+from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response, initialize_pinecone_vectorstore
 from dotenv import load_dotenv
 import time
 import google.generativeai as genai  # Gemini integration
