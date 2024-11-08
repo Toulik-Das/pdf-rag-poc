@@ -6,6 +6,7 @@ import google.generativeai as genai  # Gemini integration
 
 # Load environment variables
 load_dotenv()
+PINECONE_API_KEY = st.secrets["api_keys"]["PINECONE_API_KEY"]
 
 # Page configuration
 st.set_page_config(
