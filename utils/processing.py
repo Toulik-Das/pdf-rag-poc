@@ -23,10 +23,7 @@ def initialize_pinecone_vectorstore(PINECONE_API_KEY: str) -> Pinecone:
     # Connect to the Pinecone index
     index = pc.Index(index_name)
     
-    # Create the Pinecone vectorstore using the existing index
-    vectorstore = Pinecone(index)
-    
-    return vectorstore
+    return index
     
 # Function to initialize vector store with FAISS only if documents are present
 def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
