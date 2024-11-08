@@ -34,6 +34,7 @@ with st.sidebar:
     
     # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
+    use_pinecone = st.checkbox("Enable Collibra Knowledge")
 
 # Function to send chat input to Gemini Flash 1.5 (Free Tier)
 def get_gemini_response(user_input: str):
