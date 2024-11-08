@@ -61,15 +61,46 @@ def get_gemini_response(user_input: str):
 if api_key:
     try:
         if uploaded_files:
+            
             st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
 
             if documents:
-                # Initialize vectorstore with documents
-                vectorstore = initialize_vectorstore(api_key, documents)
-                st.write(f"Uploaded and processed {len(documents)} documents into the knowledge base.")
+                # Initialize FAISS vectorstore with documents
+                vectorstore_faiss = initialize_vectorstore(api_key, documents)
+                st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")
             else:
                 st.warning("No valid documents were found in the uploaded files.")
+        
+            if use_pinecone:
+                # Initialize Pinecone vectorstore for knowledge retrieval (no documents added here)
+                vectorstore_pinecone = initialize_pinecone_vectorstore()
+                st.write("Connected For Specialised Knowledge Retrieval")
+                
+                # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
+                # Use a retriever to combine both vector stores
+                retriever_faiss = vectorstore_faiss.as_retriever()
+                retriever_pinecone = vectorstore_pinecone.as_retriever()
+                
+                # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
+                combined_retriever = retriever_faiss.combine(retriever_pinecone)
+                
+                # Now you can use the `combined_retriever` to retrieve knowledge from both FAISS and Pinecone
+                vectorstore = combined_retriever
+                st.write("Local & Specialised knowledge available for querying.")
+                
+        elif use_pinecone:
+            # Only use Pinecone for knowledge retrieval if no uploaded files and Pinecone is enabled
+            vectorstore_pinecone = initialize_pinecone_vectorstore()
+            
+            # Use Pinecone retriever for knowledge retrieval
+            vectorstore = vectorstore_pinecone
+            
+            st.write("Connected For Specialised Knowledge Retrieval.")
+            
+        else:
+            # If no uploaded files and Pinecone is not enabled, show a message to prompt the user
+            st.warning("Please upload a PDF file or enable specialized knowledge  to chat with the model.")
         
         # Chat history management
         if "chat_history" not in st.session_state:
