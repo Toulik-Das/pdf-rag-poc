@@ -81,7 +81,7 @@ if api_key:
                 # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
                 # Use a retriever to combine both vector stores
                 retriever_faiss = vectorstore_faiss.as_retriever()
-                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+                retriever_pinecone = vectorstore_pinecone
                 
                 # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
                 combined_retriever = retriever_faiss.combine(retriever_pinecone)
