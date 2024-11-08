@@ -45,7 +45,7 @@ def process_pdfs(uploaded_files) -> List:
     return documents
 
 # Function to get chat response supporting both OpenAI and Gemini Flash 1.5
-def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
+def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str) -> Generator[str, None, None]:
     if model_name == "Gemini Flash 1.5(Free Tier)":
         # Configure Gemini Flash 1.5 API key and session
         genai.configure(api_key=api_key)
@@ -91,9 +91,9 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
         # Create the conversation chain
         conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
-        # Get the full response (in a streaming fashion)
-        response = conversation_chain({"question": user_input})
+        # Get the response stream
+        response_stream = conversation_chain({"question": user_input})
 
-        # Simulate yielding portions of the response as markdown-compatible chunks
-        for sentence in response['text'].split('. '):  # Adjust this split as needed to control chunk size
-            yield sentence + '. '
+        # Iterate over the stream and yield each chunk
+        for response in response_stream:
+            yield response["text"]  # Assuming "text" key contains the chunk in each response
