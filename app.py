@@ -58,9 +58,12 @@ def get_gemini_response(user_input: str):
         st.error(f"Error while fetching the Gemini response: {e}")
         return "There was an error processing your request with Gemini Flash 1.5."
 
-# Initialize vectorstore only if the API key is provided
+# Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     try:
+        # Ensure vectorstore is initialized by default (even when no PDF files are uploaded)
+        vectorstore = None
+        
         if uploaded_files:
             st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
