@@ -71,17 +71,34 @@ if api_key:
             if documents:
                 # Initialize FAISS vectorstore with documents
                 vectorstore_faiss = initialize_vectorstore(api_key, documents)
-                st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")
-                vectorstore = vectorstore_faiss  # Set the vectorstore to FAISS after processing documents
+                st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")                
             else:
                 st.warning("No valid documents were found in the uploaded files.")
+
+            if use_pinecone:
+                # Initialize Pinecone vectorstore for knowledge retrieval (no documents added here)
+                vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
+                st.write("Connected For Specialised Knowledge Retrieval")
+                
+                # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
+                # Use a retriever to combine both vector stores
+                retriever_faiss = vectorstore_faiss.as_retriever()
+                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+                
+                # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
+                combined_retriever = retriever_faiss.combine(retriever_pinecone)
+                
+                # Now you can use the `combined_retriever` to retrieve knowledge from both FAISS and Pinecone
+                vectorstore = combined_retriever
+                st.write("Local & Specialised knowledge available for querying.")
         
         # Case where no PDFs are uploaded, but Pinecone is enabled
         if use_pinecone:
             # Initialize Pinecone vectorstore for knowledge retrieval
             vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
             if vectorstore is None:  # If vectorstore wasn't initialized by PDFs, initialize with Pinecone
-                vectorstore = vectorstore_pinecone
+                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+                vectorstore = retriever_pinecone
             st.write("Connected For Specialised Knowledge Retrieval.")
         
         # Check if vectorstore is initialized before proceeding
