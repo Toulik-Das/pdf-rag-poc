@@ -61,7 +61,6 @@ def get_gemini_response(user_input: str):
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     try:
-        # Initialize vectorstore to None as default
         vectorstore = None
         
         # Case where PDF files are uploaded
@@ -73,36 +72,22 @@ if api_key:
                 # Initialize FAISS vectorstore with documents
                 vectorstore_faiss = initialize_vectorstore(api_key, documents)
                 st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")
+                vectorstore = vectorstore_faiss  # Set the vectorstore to FAISS after processing documents
             else:
                 st.warning("No valid documents were found in the uploaded files.")
         
-            if use_pinecone:
-                # Initialize Pinecone vectorstore for knowledge retrieval
-                vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
-                st.write("Connected For Specialised Knowledge Retrieval")
-                
-                # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
-                retriever_faiss = vectorstore_faiss.as_retriever()
-                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
-                
-                # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
-                combined_retriever = retriever_faiss.combine(retriever_pinecone)
-                
-                # Now you can use the `combined_retriever` to retrieve knowledge from both FAISS and Pinecone
-                vectorstore = combined_retriever
-                st.write("Local & Specialised knowledge available for querying.")
-        
         # Case where no PDFs are uploaded, but Pinecone is enabled
-        elif use_pinecone:
-            # Only use Pinecone for knowledge retrieval if no uploaded files and Pinecone is enabled
+        if use_pinecone:
+            # Initialize Pinecone vectorstore for knowledge retrieval
             vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
-            vectorstore = vectorstore_pinecone  # Use Pinecone as the fallback vectorstore
-            
+            if vectorstore is None:  # If vectorstore wasn't initialized by PDFs, initialize with Pinecone
+                vectorstore = vectorstore_pinecone
             st.write("Connected For Specialised Knowledge Retrieval.")
         
-        # Case where no PDFs are uploaded and Pinecone is not enabled
-        else:
-            st.warning("Please upload a PDF file or enable specialized knowledge to chat with the model.")
+        # Check if vectorstore is initialized before proceeding
+        if vectorstore is None:
+            st.warning("Vectorstore not initialized properly. Please upload PDFs or enable Pinecone for querying.")
+            st.stop()  # Stop further execution if vectorstore isn't initialized
 
         # Chat history management
         if "chat_history" not in st.session_state:
@@ -126,23 +111,18 @@ if api_key:
                 response_text = ""
 
                 try:
-                    # Ensure vectorstore is initialized before querying
-                    if vectorstore:
-                        if selected_model == "Gemini Flash 1.5(Free Tier)":
-                            # Get and display the response from Gemini Flash 1.5
-                            for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
-                                response_text += chunk
-                                response_placeholder.markdown(response_text)  # Update full markdown output so far
-                                time.sleep(0.05)  # Simulate streaming effect
-                        else:
-                            # Get and display the response for GPT-based models
-                            for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
-                                response_text += chunk
-                                response_placeholder.markdown(response_text)  # Update full markdown output so far
-                                time.sleep(0.05)  # Simulate streaming effect
+                    if selected_model == "Gemini Flash 1.5(Free Tier)":
+                        # Get and display the response from Gemini Flash 1.5
+                        for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
+                            response_text += chunk
+                            response_placeholder.markdown(response_text)  # Update full markdown output so far
+                            time.sleep(0.05)  # Simulate streaming effect
                     else:
-                        st.error("Vectorstore not initialized properly.")
-                        response_placeholder.markdown("Please upload PDFs or enable Pinecone for querying.")
+                        # Get and display the response for GPT-based models
+                        for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                            response_text += chunk
+                            response_placeholder.markdown(response_text)  # Update full markdown output so far
+                            time.sleep(0.05)  # Simulate streaming effect
 
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
