@@ -60,16 +60,14 @@
    ```bash
    streamlit run app.py
    ```
----
 
-### 🌐 Usage
+## 🌐 Usage
   - Upload PDF: Drag and drop PDFs for processing.
   - Ask a Question: Enter a question about the PDF content.
   - View Response: See answers streamed in a chat format.
 
----
 
-### 🤝 Contributing
+## 🤝 Contributing
   - Fork the repository.
   - Create a new branch (feature/your-feature).
   - Push changes and submit a Pull Request.
