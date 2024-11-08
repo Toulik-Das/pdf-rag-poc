@@ -3,7 +3,6 @@ from utils.processing import process_pdfs, initialize_vectorstore, get_chat_resp
 from dotenv import load_dotenv
 import time
 import google.generativeai as genai  # Gemini integration
-import pinecone
 
 # Load environment variables
 load_dotenv()
@@ -46,7 +45,9 @@ def get_gemini_response(user_input: str):
 
         # Create a chat session for Gemini
         chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash").start_chat(
-            history=[{"role": "user", "parts": [user_input]}]
+            history=[
+                {"role": "user", "parts": [user_input]},
+            ]
         )
 
         # Send message and receive response
@@ -60,62 +61,49 @@ def get_gemini_response(user_input: str):
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     try:
-        vectorstore = None
-        
-        # Case where PDF files are uploaded
         if uploaded_files:
+            
             st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
 
             if documents:
                 # Initialize FAISS vectorstore with documents
                 vectorstore_faiss = initialize_vectorstore(api_key, documents)
-                st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")                
+                st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")
             else:
                 st.warning("No valid documents were found in the uploaded files.")
-
+        
             if use_pinecone:
                 # Initialize Pinecone vectorstore for knowledge retrieval (no documents added here)
                 vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
                 st.write("Connected For Specialised Knowledge Retrieval")
                 
-                # You will use the Pinecone query method instead of 'as_retriever'
-                def query_pinecone(query):
-                    # Example: Replace this with actual query functionality based on your setup
-                    response = vectorstore_pinecone.query(
-                        query_vector=query, 
-                        top_k=5,  # Number of similar documents to retrieve
-                        include_metadata=True
-                    )
-                    return response
-
-                # Combine FAISS retrieval and Pinecone query manually
-                def combined_retrieval(query):
-                    # First use FAISS retriever
-                    faiss_results = vectorstore_faiss.as_retriever().retrieve(query)
-                    
-                    # Then use Pinecone query
-                    pinecone_results = query_pinecone(query)
-                    
-                    # Combine or rank results from FAISS and Pinecone
-                    return faiss_results + pinecone_results
+                # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
+                # Use a retriever to combine both vector stores
+                retriever_faiss = vectorstore_faiss.as_retriever()
+                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
                 
-                vectorstore = combined_retrieval
+                # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
+                combined_retriever = retriever_faiss.combine(retriever_pinecone)
+                
+                # Now you can use the `combined_retriever` to retrieve knowledge from both FAISS and Pinecone
+                vectorstore = combined_retriever
                 st.write("Local & Specialised knowledge available for querying.")
-        
-        # Case where no PDFs are uploaded, but Pinecone is enabled
-        if use_pinecone:
-            # Initialize Pinecone vectorstore for knowledge retrieval
+                
+        elif use_pinecone:
+            # Only use Pinecone for knowledge retrieval if no uploaded files and Pinecone is enabled
             vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
-            if vectorstore is None:  # If vectorstore wasn't initialized by PDFs, initialize with Pinecone
-                vectorstore = query_pinecone  # Use the Pinecone query method directly
+            
+            # Use Pinecone retriever for knowledge retrieval
+            vectorstore = vectorstore_pinecone
+            
             st.write("Connected For Specialised Knowledge Retrieval.")
+            
+        else:
+            vectorstore = None
+            # If no uploaded files and Pinecone is not enabled, show a message to prompt the user
+            st.warning("Please upload a PDF file or enable specialized knowledge  to chat with the model.")
         
-        # Check if vectorstore is initialized before proceeding
-        if vectorstore is None:
-            st.warning("Vectorstore not initialized properly. Please upload PDFs or enable Pinecone for querying.")
-            st.stop()  # Stop further execution if vectorstore isn't initialized
-
         # Chat history management
         if "chat_history" not in st.session_state:
             st.session_state["chat_history"] = []
@@ -140,7 +128,8 @@ if api_key:
                 try:
                     if selected_model == "Gemini Flash 1.5(Free Tier)":
                         # Get and display the response from Gemini Flash 1.5
-                        for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
+                        # response_text = get_gemini_response(user_input)
+                         for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
                             response_text += chunk
                             response_placeholder.markdown(response_text)  # Update full markdown output so far
                             time.sleep(0.05)  # Simulate streaming effect
@@ -177,5 +166,6 @@ if api_key:
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
