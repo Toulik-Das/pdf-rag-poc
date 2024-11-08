@@ -75,7 +75,7 @@ if api_key:
         
             if use_pinecone:
                 # Initialize Pinecone vectorstore for knowledge retrieval (no documents added here)
-                vectorstore_pinecone = initialize_pinecone_vectorstore()
+                vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
                 st.write("Connected For Specialised Knowledge Retrieval")
                 
                 # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
@@ -92,7 +92,7 @@ if api_key:
                 
         elif use_pinecone:
             # Only use Pinecone for knowledge retrieval if no uploaded files and Pinecone is enabled
-            vectorstore_pinecone = initialize_pinecone_vectorstore()
+            vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
             
             # Use Pinecone retriever for knowledge retrieval
             vectorstore = vectorstore_pinecone
