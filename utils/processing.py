@@ -1,4 +1,3 @@
-
 import os 
 import tempfile
 import asyncio
@@ -14,7 +13,7 @@ from typing import List, Generator
 from pinecone import Pinecone
 
 # Function to initialize Pinecone vectorstore for knowledge retrieval
-def initialize_pinecone_vectorstore(PINECONE_API_KEY: str):
+def initialize_pinecone_vectorstore(PINECONE_API_KEY: str) -> Pinecone:
     # Initialize Pinecone connection
     pc = Pinecone(api_key=PINECONE_API_KEY, environment="production")
     
@@ -27,10 +26,7 @@ def initialize_pinecone_vectorstore(PINECONE_API_KEY: str):
     # Create the Pinecone vectorstore using the existing index
     vectorstore = Pinecone(index)
     
-    # Return a retriever from Pinecone vectorstore
-    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
-    
-    return retriever
+    return vectorstore
     
 # Function to initialize vector store with FAISS only if documents are present
 def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
@@ -86,7 +82,12 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
 
         # Start a chat session
         chat_session = model.start_chat(
-            history=[{"role": "user", "parts": [user_input]}]
+            history=[
+                {
+                    "role": "user",
+                    "parts": [user_input],
+                }
+            ]
         )
 
         response = chat_session.send_message(user_input)
@@ -101,8 +102,8 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
         # Memory for the conversation
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-        # Use the Pinecone retriever or FAISS retriever (depending on availability)
-        retriever = vectorstore  # Should be a retriever already
+        # Get the retriever from the vectorstore
+        retriever = vectorstore.as_retriever()
 
         # Create the conversation chain
         conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
