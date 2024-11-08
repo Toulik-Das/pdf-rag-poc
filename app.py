@@ -61,8 +61,6 @@ def get_gemini_response(user_input: str):
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     try:
-        vectorstore = None
-        
         if uploaded_files:
             
             st.write("Processing documents 🧾 ")
@@ -83,7 +81,7 @@ if api_key:
                 # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
                 # Use a retriever to combine both vector stores
                 retriever_faiss = vectorstore_faiss.as_retriever()
-                retriever_pinecone = vectorstore_pinecone
+                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
                 
                 # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
                 combined_retriever = retriever_faiss.combine(retriever_pinecone)
