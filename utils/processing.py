@@ -86,12 +86,7 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
 
         # Start a chat session
         chat_session = model.start_chat(
-            history=[
-                {
-                    "role": "user",
-                    "parts": [user_input],
-                }
-            ]
+            history=[{"role": "user", "parts": [user_input]}]
         )
 
         response = chat_session.send_message(user_input)
@@ -106,8 +101,8 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
         # Memory for the conversation
         memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-        # Get the retriever from the vectorstore
-        retriever = vectorstore.as_retriever()
+        # Use the Pinecone retriever or FAISS retriever (depending on availability)
+        retriever = vectorstore  # Should be a retriever already
 
         # Create the conversation chain
         conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
@@ -118,4 +113,3 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
         # Simulate yielding portions of the response as markdown-compatible chunks
         for sentence in response['text'].split('. '):  # Adjust this split as needed to control chunk size
             yield sentence + '. '
-
