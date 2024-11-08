@@ -3,6 +3,7 @@ from utils.processing import process_pdfs, initialize_vectorstore, get_chat_resp
 from dotenv import load_dotenv
 import time
 import google.generativeai as genai  # Gemini integration
+import pinecone
 
 # Load environment variables
 load_dotenv()
@@ -45,9 +46,7 @@ def get_gemini_response(user_input: str):
 
         # Create a chat session for Gemini
         chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash").start_chat(
-            history=[
-                {"role": "user", "parts": [user_input]},
-            ]
+            history=[{"role": "user", "parts": [user_input]}]
         )
 
         # Send message and receive response
@@ -80,16 +79,28 @@ if api_key:
                 vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
                 st.write("Connected For Specialised Knowledge Retrieval")
                 
-                # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
-                # Use a retriever to combine both vector stores
-                retriever_faiss = vectorstore_faiss.as_retriever()
-                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+                # You will use the Pinecone query method instead of 'as_retriever'
+                def query_pinecone(query):
+                    # Example: Replace this with actual query functionality based on your setup
+                    response = vectorstore_pinecone.query(
+                        query_vector=query, 
+                        top_k=5,  # Number of similar documents to retrieve
+                        include_metadata=True
+                    )
+                    return response
+
+                # Combine FAISS retrieval and Pinecone query manually
+                def combined_retrieval(query):
+                    # First use FAISS retriever
+                    faiss_results = vectorstore_faiss.as_retriever().retrieve(query)
+                    
+                    # Then use Pinecone query
+                    pinecone_results = query_pinecone(query)
+                    
+                    # Combine or rank results from FAISS and Pinecone
+                    return faiss_results + pinecone_results
                 
-                # Combine the retrievers (you can use different strategies to combine them, e.g., sequentially)
-                combined_retriever = retriever_faiss.combine(retriever_pinecone)
-                
-                # Now you can use the `combined_retriever` to retrieve knowledge from both FAISS and Pinecone
-                vectorstore = combined_retriever
+                vectorstore = combined_retrieval
                 st.write("Local & Specialised knowledge available for querying.")
         
         # Case where no PDFs are uploaded, but Pinecone is enabled
@@ -97,8 +108,7 @@ if api_key:
             # Initialize Pinecone vectorstore for knowledge retrieval
             vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
             if vectorstore is None:  # If vectorstore wasn't initialized by PDFs, initialize with Pinecone
-                retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
-                vectorstore = retriever_pinecone
+                vectorstore = query_pinecone  # Use the Pinecone query method directly
             st.write("Connected For Specialised Knowledge Retrieval.")
         
         # Check if vectorstore is initialized before proceeding
