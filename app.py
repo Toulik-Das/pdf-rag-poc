@@ -127,16 +127,24 @@ if api_key:
                 try:
                     if selected_model == "Gemini Flash 1.5(Free Tier)":
                         # Get and display the response from Gemini Flash 1.5
-                        for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
-                            response_text += chunk
-                            response_placeholder.markdown(response_text)  # Update full markdown output so far
-                            time.sleep(0.05)  # Simulate streaming effect
+                        if vectorstore:  # Ensure vectorstore is not None
+                            for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
+                                response_text += chunk
+                                response_placeholder.markdown(response_text)  # Update full markdown output so far
+                                time.sleep(0.05)  # Simulate streaming effect
+                        else:
+                            st.error("Vectorstore not initialized properly.")
+                            response_placeholder.markdown("Please upload PDFs or enable Pinecone for querying.")
                     else:
                         # Get and display the response for GPT-based models
-                        for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
-                            response_text += chunk
-                            response_placeholder.markdown(response_text)  # Update full markdown output so far
-                            time.sleep(0.05)  # Simulate streaming effect
+                        if vectorstore:  # Ensure vectorstore is not None
+                            for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                                response_text += chunk
+                                response_placeholder.markdown(response_text)  # Update full markdown output so far
+                                time.sleep(0.05)  # Simulate streaming effect
+                        else:
+                            st.error("Vectorstore not initialized properly.")
+                            response_placeholder.markdown("Please upload PDFs or enable Pinecone for querying.")
 
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
