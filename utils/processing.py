@@ -5,15 +5,16 @@ import google.generativeai as genai
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain.vectorstores import FAISS, Pinecone
+from langchain.vectorstores import VectorStoreRetriever
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Generator
-from pinecone import Pinecone
+#from pinecone import Pinecone
 
 # Function to initialize Pinecone vectorstore for knowledge retrieval
-def initialize_pinecone_vectorstore(PINECONE_API_KEY: str) -> Pinecone:
+def initialize_pinecone_vectorstore(PINECONE_API_KEY: str) -> VectorStoreRetriever:
     # Initialize Pinecone connection
     pc = Pinecone(api_key=PINECONE_API_KEY, environment="production")
     
@@ -26,7 +27,10 @@ def initialize_pinecone_vectorstore(PINECONE_API_KEY: str) -> Pinecone:
     # Create the Pinecone vectorstore using the existing index
     vectorstore = Pinecone(index)
     
-    return vectorstore
+    # Return a retriever from Pinecone vectorstore
+    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+    
+    return retriever
     
 # Function to initialize vector store with FAISS only if documents are present
 def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
