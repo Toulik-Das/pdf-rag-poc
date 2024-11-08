@@ -2,6 +2,7 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response, initialize_pinecone_vectorstore
 from dotenv import load_dotenv
 import time
+import openai
 import google.generativeai as genai  # Gemini integration
 
 # Load environment variables
@@ -17,93 +18,137 @@ st.set_page_config(
 
 # Title and description
 st.title("QueryWise 🧠")
-st.write("Upload PDFs, ask questions, and get expert answers powered by GPT or Gemini Flash 1.5(Free Tier).")
+st.write("Upload PDFs, ask questions, and get expert answers powered by GPT or Gemini Flash 1.5 (Free Tier).")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
-    model_options = ["gpt-4o-mini", "gpt-4", "Gemini Flash 1.5(Free Tier)"]
+    # Model selection for OpenAI and Gemini
+    model_options = ["gpt-4o-mini", "gpt-4", "Gemini Flash 1.5 (Free Tier)"]
     selected_model = st.selectbox("Select a model:", model_options)
 
-    if selected_model == "Gemini Flash 1.5(Free Tier)":
+    # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
+    if selected_model == "Gemini Flash 1.5 (Free Tier)":
         gemini_api_key = st.secrets["api_keys"]["gemini_key"]
         api_key = st.text_input("Enter your OpenAI API Key (To Generate Embeddings):", type="password")
     else:
+        # Prompt user to input OpenAI API key for other models
         api_key = st.text_input("Enter your OpenAI API Key:", type="password")
     
+    # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
     use_pinecone = st.checkbox("Enable Collibra Knowledge")
 
-# Function to send chat input to Gemini Flash 1.5 (Free Tier)
-def get_gemini_response(user_input: str):
-    try:
-        genai.configure(api_key=gemini_api_key)
-        chat_session = genai.GenerativeModel(model_name="gemini-1.5-flash").start_chat(
-            history=[{"role": "user", "parts": [user_input]}]
-        )
-        response = chat_session.send_message(user_input)
-        return response.text
-    except Exception as e:
-        st.error(f"Error while fetching the Gemini response: {e}")
-        return "There was an error processing your request with Gemini Flash 1.5."
+# Function to get embeddings for queries
+def get_embedding(text, api_key):
+    openai.api_key = api_key
+    response = openai.Embedding.create(
+        input=text,
+        model="text-embedding-ada-002"  # Adjust model as needed
+    )
+    return response['data'][0]['embedding']
 
-# Main logic
+# Initialize vectorstores and process PDFs if API key is provided
 if api_key:
     try:
-        # Initialize FAISS vectorstore if files are uploaded
+        # Process uploaded PDFs
         if uploaded_files:
-            st.write("Processing documents 🧾")
+            st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
+
             if documents:
+                # Initialize FAISS vectorstore with documents
                 vectorstore_faiss = initialize_vectorstore(api_key, documents)
                 st.write(f"Uploaded and processed {len(documents)} documents into the FAISS knowledge base.")
             else:
                 st.warning("No valid documents were found in the uploaded files.")
         
-        # Initialize Pinecone vectorstore only if the checkbox is checked
-        vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY) if use_pinecone else None
+            # Initialize Pinecone if enabled
+            if use_pinecone:
+                vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
+                st.write("Connected for Specialized Knowledge Retrieval.")
 
-        # Setup final vectorstore based on user input
+        elif use_pinecone:
+            # Initialize only Pinecone if no PDFs are uploaded
+            vectorstore_faiss = None
+            vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
+            st.write("Connected for Specialized Knowledge Retrieval.")
+        else:
+            vectorstore_faiss = None
+            vectorstore_pinecone = None
+            st.warning("Please upload a PDF file or enable specialized knowledge to chat with the model.")
+
+        # Define retrieve_knowledge function based on available vectorstores
         if vectorstore_faiss and vectorstore_pinecone:
             def retrieve_combined_knowledge(query):
+                # Get vector for the query
+                query_vector = get_embedding(query, api_key)
+                
+                # Search FAISS vectorstore
                 faiss_results = vectorstore_faiss.similarity_search(query)
-                pinecone_results = vectorstore_pinecone.query(query, top_k=5, include_metadata=True)
-                combined_results = faiss_results + pinecone_results["matches"]
+                
+                # Search Pinecone vectorstore
+                pinecone_response = vectorstore_pinecone.query(
+                    namespace="ns1",
+                    vector=query_vector,
+                    top_k=5,
+                    include_values=True,
+                    include_metadata=True
+                )
+                pinecone_results = pinecone_response.get("matches", [])
+                
+                # Combine FAISS and Pinecone results
+                combined_results = faiss_results + pinecone_results
                 return combined_results
             
             retrieve_knowledge = retrieve_combined_knowledge
-            st.write("Local & Specialised knowledge available for querying.")
+            st.write("Local & Specialized knowledge available for querying.")
         
         elif vectorstore_faiss:
             retrieve_knowledge = lambda query: vectorstore_faiss.similarity_search(query)
             st.write("Local knowledge available for querying.")
         
         elif vectorstore_pinecone:
-            retrieve_knowledge = lambda query: vectorstore_pinecone.query(query, top_k=5, include_metadata=True)
-            st.write("Connected For Specialised Knowledge Retrieval.")
-        
+            def retrieve_pinecone_only(query):
+                query_vector = get_embedding(query, api_key)
+                pinecone_response = vectorstore_pinecone.query(
+                    namespace="ns1",
+                    vector=query_vector,
+                    top_k=5,
+                    include_values=True,
+                    include_metadata=True
+                )
+                return pinecone_response.get("matches", [])
+            
+            retrieve_knowledge = retrieve_pinecone_only
+            st.write("Connected for Specialized Knowledge Retrieval.")
+
         else:
             retrieve_knowledge = None
             st.warning("Please upload a PDF file or enable specialized knowledge to chat with the model.")
         
-        # Chat history and input handling
+        # Chat history management
         if "chat_history" not in st.session_state:
             st.session_state["chat_history"] = []
 
+        # Display chat messages from history
         for message in st.session_state["chat_history"]:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
+        # Accept user input
         if user_input := st.chat_input("Ask a question about the content in your PDFs"):
+            # Add user message to chat history
             st.session_state["chat_history"].append({"role": "user", "content": user_input})
             with st.chat_message("user"):
                 st.markdown(user_input)
 
+            # Display assistant response with simulated streaming
             with st.chat_message("assistant"):
                 response_placeholder = st.empty()
                 response_text = ""
 
                 try:
-                    if selected_model == "Gemini Flash 1.5(Free Tier)":
+                    if selected_model == "Gemini Flash 1.5 (Free Tier)":
                         for chunk in get_chat_response(user_input, retrieve_knowledge, selected_model, gemini_api_key):
                             response_text += chunk
                             response_placeholder.markdown(response_text)
@@ -118,9 +163,10 @@ if api_key:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
 
+                # Save the assistant's final response in markdown format for chat history
                 st.session_state["chat_history"].append({"role": "assistant", "content": response_text})
 
-        # Sidebar for chat history visibility
+        # Sidebar to toggle chat history visibility
         with st.sidebar:
             if "show_chat_history" not in st.session_state:
                 st.session_state["show_chat_history"] = False
@@ -128,12 +174,17 @@ if api_key:
             if st.button("Show/Hide Chat History"):
                 st.session_state["show_chat_history"] = not st.session_state["show_chat_history"]
 
+            # Show chat history in sidebar if toggled on
             if st.session_state["show_chat_history"]:
                 st.write("### Chat History")
                 for i, message in enumerate(st.session_state["chat_history"]):
-                    st.write(f"**Q{i+1}:** {message['content']}" if message["role"] == "user" else f"**A{i+1}:** {message['content']}")
+                    if message["role"] == "user":
+                        st.write(f"**Q{i+1}:** {message['content']}")
+                    else:
+                        st.write(f"**A{i+1}:** {message['content']}")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
+
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
