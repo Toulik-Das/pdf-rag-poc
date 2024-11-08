@@ -61,6 +61,8 @@ def get_gemini_response(user_input: str):
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     try:
+        vectorstore = None
+        
         if uploaded_files:
             
             st.write("Processing documents 🧾 ")
