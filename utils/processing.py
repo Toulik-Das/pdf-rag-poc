@@ -95,5 +95,5 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
         response_stream = conversation_chain({"question": user_input})
 
         # Iterate over the stream and yield each chunk
-        for response in response_stream:
-            yield response["text"]  # Assuming "text" key contains the chunk in each response
+        for chunk in response['text_stream']:
+            yield chunk  # Directly yield the chunk from the stream
