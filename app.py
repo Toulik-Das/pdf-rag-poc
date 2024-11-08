@@ -100,6 +100,7 @@ if api_key:
             st.write("Connected For Specialised Knowledge Retrieval.")
             
         else:
+            vectorstore = None
             # If no uploaded files and Pinecone is not enabled, show a message to prompt the user
             st.warning("Please upload a PDF file or enable specialized knowledge  to chat with the model.")
         
