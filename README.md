@@ -44,8 +44,21 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/QueryWise.git
+   git clone https://github.com/Toulik-Das/pdf-rag-poc.git
    cd QueryWise
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Configure environment variables**:  Create a ```.env``` file and add your OpenAI API key.
+   ```bash
+   OPENAI_API_KEY=your_api_key_here
+   ```
+4. **Run the app**:
+   ```bash
+   streamlit run app.py
    ```
 
 ### 🌐 Usage
