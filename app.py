@@ -58,11 +58,10 @@ def get_gemini_response(user_input: str):
         st.error(f"Error while fetching the Gemini response: {e}")
         return "There was an error processing your request with Gemini Flash 1.5."
 
-# Initialize vectorstore and process PDFs only if the API key is provided
+# Initialize vectorstore only if the API key is provided
 if api_key:
     try:
         if uploaded_files:
-            
             st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
 
@@ -79,7 +78,6 @@ if api_key:
                 st.write("Connected For Specialised Knowledge Retrieval")
                 
                 # Combine both FAISS and Pinecone vectorstores (multi-retriever setup)
-                # Use a retriever to combine both vector stores
                 retriever_faiss = vectorstore_faiss.as_retriever()
                 retriever_pinecone = vectorstore_pinecone.as_retriever(search_type="similarity", search_kwargs={"k": 5})
                 
@@ -89,20 +87,18 @@ if api_key:
                 # Now you can use the `combined_retriever` to retrieve knowledge from both FAISS and Pinecone
                 vectorstore = combined_retriever
                 st.write("Local & Specialised knowledge available for querying.")
-                
+        
         elif use_pinecone:
             # Only use Pinecone for knowledge retrieval if no uploaded files and Pinecone is enabled
             vectorstore_pinecone = initialize_pinecone_vectorstore(PINECONE_API_KEY)
-            
-            # Use Pinecone retriever for knowledge retrieval
-            vectorstore = vectorstore_pinecone
+            vectorstore = vectorstore_pinecone  # Use Pinecone as the fallback vectorstore
             
             st.write("Connected For Specialised Knowledge Retrieval.")
-            
+        
         else:
+            # If no uploaded files and Pinecone is not enabled, initialize an empty vectorstore
             vectorstore = None
-            # If no uploaded files and Pinecone is not enabled, show a message to prompt the user
-            st.warning("Please upload a PDF file or enable specialized knowledge  to chat with the model.")
+            st.warning("Please upload a PDF file or enable specialized knowledge to chat with the model.")
         
         # Chat history management
         if "chat_history" not in st.session_state:
@@ -128,8 +124,7 @@ if api_key:
                 try:
                     if selected_model == "Gemini Flash 1.5(Free Tier)":
                         # Get and display the response from Gemini Flash 1.5
-                        # response_text = get_gemini_response(user_input)
-                         for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
+                        for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key):
                             response_text += chunk
                             response_placeholder.markdown(response_text)  # Update full markdown output so far
                             time.sleep(0.05)  # Simulate streaming effect
@@ -166,6 +161,5 @@ if api_key:
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
-
 else:
     st.warning("Please enter your OpenAI API key to use the application.")
