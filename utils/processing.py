@@ -63,7 +63,7 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
 
     # NEW: Retrieve from FAISS
     faiss_retriever = vectorstore.as_retriever()
-    faiss_results = vectorstore.retrieve(user_input)
+    faiss_results = faiss_retriever.retrieve(user_input)
 
     # NEW: Retrieve from Pinecone
     query_vector = OpenAIEmbeddings(api_key=api_key).embed_documents([user_input])[0]
