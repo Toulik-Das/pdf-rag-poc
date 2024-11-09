@@ -79,10 +79,14 @@ if api_key:
                 try:
                     # Get the full response in chunks
                     full_response_chunks = get_chat_response(user_input, vectorstore, selected_model, api_key)
+
+                    # Variable to store the final response for history
+                    final_response = ""
         
                     # Stream the response smoothly
                     for chunk in full_response_chunks:
                         stream_response_smoothly(chunk)
+                        final_response += chunk  # Accumulate the full response
         
                     # Save the assistant's final response in chat history
                     st.session_state["chat_history"].append({"role": "assistant", "content": chunk})
