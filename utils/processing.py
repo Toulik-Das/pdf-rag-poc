@@ -75,15 +75,14 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
         include_metadata=True
     )
     
-    # Process Pinecone results to extract text from metadata if available, else from values
+    # Process Pinecone results by using IDs or values as placeholder text
     pinecone_documents = []
     for match in pinecone_results['matches']:
-        text_content = match.get('metadata', {}).get('text', '')  # Use metadata if available
-        if not text_content:  # If metadata text is not available, fallback to `values`
-            text_content = " ".join(map(str, match.get('values', [])))
-        pinecone_documents.append({"text": text_content})
+        # Use ID as placeholder text since metadata is absent
+        text_content = f"Document with ID {match['id']} (vector values available)"
+        pinecone_documents.append(Document(page_content=text_content))
         
-    combined_results = faiss_results + [Document(page_content=doc['text']) for doc in pinecone_documents]
+    combined_results = faiss_results + pinecone_documents
     print(combined_results)
 
     # Create the conversation chain
