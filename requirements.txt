@@ -6,4 +6,3 @@ PyMuPDF
 langchain_community
 tiktoken
 google-generativeai
-pinecone
