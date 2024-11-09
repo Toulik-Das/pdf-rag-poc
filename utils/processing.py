@@ -60,13 +60,14 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Use the chain to generate a response in real-time
     response_stream = conversation_chain.stream({"question": user_input})
 
-    # Handle each chunk based on its structure
+    # Iterate through the response stream and handle content
     for chunk in response_stream:
-        # Ensure chunk is not empty and handle as needed
-        if chunk:
-            # Check if chunk is a dictionary and contains 'content' as expected
-            if isinstance(chunk, dict) and 'content' in chunk:
-                yield chunk['content']
-            # If chunk is not in the expected format, yield it directly as a fallback
-            else:
-                yield str(chunk)
+        # If chunk has an attribute like 'text' or 'content', yield it directly
+        if isinstance(chunk, dict):
+            # Look for a key that likely holds the text response (e.g., 'content' or 'text')
+            content = chunk.get("content") or chunk.get("text")
+            if content:
+                yield content
+        # Fallback to string conversion for any non-dict or unknown format chunks
+        else:
+            yield str(chunk)
