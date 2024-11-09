@@ -70,7 +70,7 @@ if api_key:
 
                 try:
                     # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
-                    for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                    for chunk in get_chat_response(user_input, vectorstore, pinecone_index, selected_model, api_key):
                         response_text += chunk
                         response_placeholder.markdown(response_text)  # Update full markdown output so far
                         time.sleep(0.05)  # Simulate streaming effect
