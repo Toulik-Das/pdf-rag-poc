@@ -1,6 +1,7 @@
 import os 
 import tempfile
 import asyncio
+import time
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
