@@ -9,6 +9,13 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Generator
+from pinecone import Pinecone
+
+# Function to initialize Pinecone vectorstore for knowledge retrieval
+def initialize_pinecone_vectorstore(PINECONE_API_KEY: str):
+    pc = Pinecone(api_key=PINECONE_API_KEY, environment="production")
+    index = pc.Index("rag-poc")
+    return index
 
 # Function to initialize vector store with FAISS only if documents are present
 def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
