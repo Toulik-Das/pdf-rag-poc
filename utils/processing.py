@@ -59,9 +59,27 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     # Get the retriever from the vectorstore
-    retriever = vectorstore.as_retriever()
+    #retriever = vectorstore.as_retriever()
+
+    # NEW: Retrieve from FAISS
+    faiss_retriever = vectorstore.as_retriever()
+    faiss_results = vectorstore.retrieve(user_input)
+
+    # NEW: Retrieve from Pinecone
+    query_vector = OpenAIEmbeddings(api_key=api_key).embed_documents([user_input])[0]
+    pinecone_results = pinecone_index.query(
+        vector=query_vector,
+        top_k=5,  # Top 5 results
+        include_values=True,
+        include_metadata=True
+    )
+    combined_results = faiss_results + pinecone_results['matches']
 
     # Create the conversation chain
+    #conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
+
+    # NEW: Create conversation chain with combined results
+    retriever = FAISS.from_documents(combined_results, OpenAIEmbeddings(api_key=api_key)).as_retriever()
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
     # Get the full response (in a streaming fashion)
