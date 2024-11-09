@@ -51,23 +51,20 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Initialize the ChatOpenAI model with streaming enabled
     llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7, stream=True)
     
-    # Set up memory for the conversation
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    # Prepare the conversation retriever
+    retriever = vectorstore.as_retriever()
+    context = retriever.get_relevant_documents(user_input)
     
-    # Create the ConversationalRetrievalChain
-    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vectorstore.as_retriever(), memory=memory)
+    # Prepare messages with retrieved context for the OpenAI chat model
+    messages = [{"role": "system", "content": "You are a helpful assistant."}]
+    for doc in context:
+        messages.append({"role": "system", "content": doc.page_content})
+    messages.append({"role": "user", "content": user_input})
     
-    # Use the chain to generate a response in real-time
-    response_stream = conversation_chain.stream({"question": user_input})
-
-    # Iterate through the response stream and handle content
+    # Start streaming the response using LangChain’s model
+    response_stream = llm.stream(messages)
+    
+    # Yield each token for real-time display
     for chunk in response_stream:
-        # If chunk has an attribute like 'text' or 'content', yield it directly
-        if isinstance(chunk, dict):
-            # Look for a key that likely holds the text response (e.g., 'content' or 'text')
-            content = chunk.get("content") or chunk.get("text")
-            if content:
-                yield content
-        # Fallback to string conversion for any non-dict or unknown format chunks
-        else:
-            yield str(chunk)
+        if chunk and "content" in chunk:
+            yield chunk["content"]
