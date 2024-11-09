@@ -13,25 +13,14 @@ st.set_page_config(
     layout="wide",
 )
 
-# def stream_response_smoothly(full_response: str):
-#     """Function to smoothly stream the response in Streamlit by writing character by character."""
-#     response_placeholder = st.empty()
-#     response_text = ""
-
-#     # Iterate through each chunk of the response and stream it
-#     for chunk in full_response:
-#         response_text += chunk
-#         response_placeholder.markdown(response_text)  # Update the response incrementally
-#         time.sleep(0.01)  # Adjust the delay for smoother or faster typing effect
-
 def stream_response_smoothly(full_response: str):
-    """Function to smoothly stream the response in Streamlit by writing text line by line."""
+    """Function to smoothly stream the response in Streamlit by writing character by character."""
     response_placeholder = st.empty()
     response_text = ""
-    
-    # Iterate through each line in the response
-    for char in full_response:
-        response_text += char
+
+    # Iterate through each chunk of the response and stream it
+    for chunk in full_response:
+        response_text += chunk
         response_placeholder.markdown(response_text)  # Update the response incrementally
         time.sleep(0.01)  # Adjust the delay for smoother or faster typing effect
         
