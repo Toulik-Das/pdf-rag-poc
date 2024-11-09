@@ -76,7 +76,7 @@ if api_key:
             # Display assistant response with simulated streaming
             with st.chat_message("assistant"):
                 response_placeholder = st.empty()
-                 try:
+                try:
                     # Get the response chunks
                     chunks = get_chat_response(user_input, vectorstore, selected_model, api_key)
                     
@@ -85,7 +85,6 @@ if api_key:
         
                     # Save the assistant's final response in chat history
                     st.session_state["chat_history"].append({"role": "assistant", "content": ''.join(chunks)})
-        
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
