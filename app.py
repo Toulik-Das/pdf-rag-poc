@@ -2,7 +2,6 @@ import streamlit as st
 from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
 from dotenv import load_dotenv
 import time
-import google.generativeai as genai  # Gemini integration
 
 # Load environment variables
 load_dotenv()
@@ -16,25 +15,19 @@ st.set_page_config(
 
 # Title and description
 st.title("QueryWise 🧠")
-st.write("Upload PDFs, ask questions, and get expert answers powered by GPT or Gemini Flash 1.5(Free Tier).")
+st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
-    # Model selection for OpenAI and Gemini
-    model_options = ["gpt-4o-mini", "gpt-4", "Gemini Flash 1.5(Free Tier)"]
+    # Input for OpenAI API Key
+    api_key = st.text_input("Enter your OpenAI API Key:", type="password")
+    
+    # Model selection for OpenAI
+    model_options = ["gpt-4o-mini", "gpt-4"]
     selected_model = st.selectbox("Select a model:", model_options)
-
-    # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
-    if selected_model == "Gemini Flash 1.5(Free Tier)":
-        gemini_api_key = st.secrets["api_keys"]["gemini_key"]
-        api_key = st.text_input("Enter your OpenAI API Key (For Embeddings):", type="password")
-    else:
-        # Prompt user to input OpenAI API key for other models
-        api_key = st.text_input("Enter your OpenAI API Key:", type="password")
     
     # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
-    use_pinecone = st.checkbox("Enable Collibra Knowledge")
 
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
@@ -72,12 +65,11 @@ if api_key:
                 response_text = ""
 
                 try:
-                    # Get and display the response for both GPT-based models and Gemini
-                    for chunk in get_chat_response(user_input, vectorstore, selected_model, gemini_api_key if selected_model == "Gemini Flash 1.5(Free Tier)" else api_key):
+                    # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
+                    for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
                         response_text += chunk
                         response_placeholder.markdown(response_text)  # Update full markdown output so far
                         time.sleep(0.05)  # Simulate streaming effect
-
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
