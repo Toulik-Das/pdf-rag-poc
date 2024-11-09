@@ -13,6 +13,16 @@ st.set_page_config(
     layout="wide",
 )
 
+def stream_response(chunks):
+    """Function to stream the response in Streamlit."""
+    response_placeholder = st.empty()
+    response_text = ""
+
+    for chunk in chunks:
+        response_text += chunk + '. '
+        response_placeholder.markdown(response_text)  # Update the response incrementally
+        time.sleep(0.5)  # Adjust the delay for how fast or slow you want the response to appear
+        
 # Title and description
 st.title("QueryWise 🧠")
 st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
@@ -66,20 +76,19 @@ if api_key:
             # Display assistant response with simulated streaming
             with st.chat_message("assistant"):
                 response_placeholder = st.empty()
-                response_text = ""
-
-                try:
-                    # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
-                    for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
-                        response_text += chunk
-                        response_placeholder.markdown(response_text)  # Update full markdown output so far
-                        time.sleep(0.05)  # Simulate streaming effect
+                 try:
+                    # Get the response chunks
+                    chunks = get_chat_response(user_input, vectorstore, selected_model, api_key)
+                    
+                    # Stream the response in parts
+                    stream_response(chunks)
+        
+                    # Save the assistant's final response in chat history
+                    st.session_state["chat_history"].append({"role": "assistant", "content": ''.join(chunks)})
+        
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
-
-                # Save the assistant's final response in markdown format for chat history
-                st.session_state["chat_history"].append({"role": "assistant", "content": response_text})
 
         # Sidebar to toggle chat history visibility
         with st.sidebar:
