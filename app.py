@@ -19,12 +19,16 @@ st.write("Upload PDFs, ask questions, and get expert answers powered by GPT.")
 
 # Sidebar for API Key, Model Selection, and PDF Upload
 with st.sidebar:
-    # Input for OpenAI API Key
-    api_key = st.text_input("Enter your OpenAI API Key:", type="password")
-    
     # Model selection for OpenAI
-    model_options = ["gpt-4o-mini", "gpt-4"]
+    model_options = ["gpt-4o-mini", "gpt-4", "Gemini Flash 1.5(Free Tier)"]
     selected_model = st.selectbox("Select a model:", model_options)
+
+    # Automatically use the API key from secrets if Gemini Flash 1.5 is selected
+    if selected_model == "gemini-1.5-flash":
+        api_key = st.secrets["api_keys"]["gemini_key"]
+    else:
+        # Prompt user to input OpenAI API key for other models
+        api_key = st.text_input("Enter your OpenAI API Key:", type="password")
     
     # Process PDF upload
     uploaded_files = st.file_uploader("Upload one or more PDF files", type="pdf", accept_multiple_files=True)
@@ -59,22 +63,21 @@ if api_key:
             with st.chat_message("user"):
                 st.markdown(user_input)
 
-            # Display assistant response with streaming
+            # Display assistant response with simulated streaming
             with st.chat_message("assistant"):
                 response_placeholder = st.empty()
                 response_text = ""
 
                 try:
-                    # Get and display the response in a streaming fashion, handling each new token as it arrives
-                    for token in get_chat_response(user_input, vectorstore, selected_model, api_key):
-                        response_text += token
-                        print(f"Token: {token}")  # Debugging line to check if tokens are being updated
-                        response_placeholder.markdown(response_text)  # Update markdown output so far
-                        time.sleep(0.01)  # Simulate streaming effect
+                    # Get and display the response in a streaming fashion, handling each new sentence or section as markdown
+                    for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
+                        response_text += chunk
+                        response_placeholder.markdown(response_text)  # Update full markdown output so far
+                        time.sleep(0.05)  # Simulate streaming effect
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
-                
+
                 # Save the assistant's final response in markdown format for chat history
                 st.session_state["chat_history"].append({"role": "assistant", "content": response_text})
 
