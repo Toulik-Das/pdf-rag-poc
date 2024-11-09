@@ -84,7 +84,7 @@ if api_key:
                     stream_response(chunks)
         
                     # Save the assistant's final response in chat history
-                    st.session_state["chat_history"].append({"role": "assistant", "content": ''.join(chunks)})
+                    st.session_state["chat_history"].append({"role": "assistant", "content": full_response})
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
