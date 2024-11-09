@@ -15,20 +15,10 @@ st.set_page_config(
 )
 
 
-def clean_text(text: str) -> str:
-    """Remove unwanted extra spaces and line breaks to clean up the text."""
-    # Remove excessive spaces and normalize line breaks
-    text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
-    text = text.strip()  # Remove leading/trailing spaces
-    return text
-    
 def stream_response_smoothly(full_response: str):
     """Function to smoothly stream the response in Streamlit by writing character by character."""
     response_placeholder = st.empty()
     response_text = ""
-
-    # Clean up the text before streaming
-    full_response = clean_text(full_response)
     
     # Iterate through each chunk of the response and stream it
     for chunk in full_response:
