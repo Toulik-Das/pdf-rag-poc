@@ -66,5 +66,6 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     
     # Yield each token for real-time display
     for chunk in response_stream:
-        if chunk and "content" in chunk:
+        print(f"Chunk received: {chunk}")  # Debugging line to check each chunk received
+        if chunk and "content" in chunk: 
             yield chunk["content"]
