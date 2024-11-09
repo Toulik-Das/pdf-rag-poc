@@ -12,6 +12,7 @@ from typing import List, Generator
 
 # Function to initialize vector store with FAISS only if documents are present
 def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
+    
     db_name = "pdf_knowledge_base"
     embeddings = OpenAIEmbeddings(api_key=api_key)
     
