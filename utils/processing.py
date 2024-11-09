@@ -6,6 +6,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
+from langchain.schema import Document
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Generator
@@ -44,23 +45,20 @@ def process_pdfs(uploaded_files) -> List:
     
     return documents
 
-# Function to get chat response without streaming
+# Function to get chat response with real-time streaming
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
-    # Initialize the OpenAI LLM
-    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7)
-
-    # Memory for the conversation
+    # Initialize the ChatOpenAI model with streaming enabled
+    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7, stream=True)
+    
+    # Set up memory for the conversation
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    
+    # Create the ConversationalRetrievalChain
+    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=vectorstore.as_retriever(), memory=memory)
+    
+    # Use the chain to generate a response in real-time
+    response_stream = conversation_chain.stream({"question": user_input})
 
-    # Get the retriever from the vectorstore
-    retriever = vectorstore.as_retriever()
-
-    # Create the conversation chain
-    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
-
-    # Get the full response (in a streaming fashion)
-    response = conversation_chain.invoke({"question": user_input})
-
-    # Simulate yielding portions of the response as markdown-compatible chunks
-    for sentence in response['text'].split('. '):  # Adjust this split as needed to control chunk size
-        yield sentence + '. '  # Yield each sentence followed by a period and space for clarity
+    # Yield each part of the response for real-time display
+    for chunk in response_stream:
+        yield chunk["content"]
