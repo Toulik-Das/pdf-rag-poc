@@ -59,18 +59,15 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Get the full response
     response = conversation_chain({"question": user_input})
 
-    # Log the entire response to inspect its structure
-    print(f"Response structure: {response}")
-
     # Extract the 'answer' field from the response
     if 'answer' in response:
         full_response = response['answer']
     else:
-        print(f"Unexpected response format: {response}")
         raise ValueError(f"Unexpected response format: {response}")
 
     # Split the full response into sentences or smaller chunks
     chunks = full_response.split('. ')  # Adjust this split as needed to control chunk size
 
-    # Simulate yielding portions of the response as markdown-compatible chunks
-    return chunks
+    # Yield each chunk for smooth streaming
+    for chunk in chunks:
+        yield chunk
