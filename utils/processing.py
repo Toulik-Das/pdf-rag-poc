@@ -73,7 +73,16 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
         include_values=True,
         include_metadata=True
     )
-    combined_results = faiss_results + pinecone_results['matches']
+
+    print(pinecone_results)
+    
+    # New: Process Pinecone results to extract text from metadata
+    pinecone_documents = []
+    for match in pinecone_results['matches']:
+        # Assuming the 'text' field in metadata contains the relevant text content
+        pinecone_documents.append({"text": match['metadata'].get('text', '')})
+        
+    combined_results = faiss_results + pinecone_documents
 
     # Create the conversation chain
     #conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
