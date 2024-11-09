@@ -43,6 +43,35 @@ def process_pdfs(uploaded_files) -> List:
     
     return documents
 
+# def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
+#     # Initialize the OpenAI LLM
+#     llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7)
+
+#     # Memory for the conversation
+#     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+#     # Get the retriever from the vectorstore
+#     retriever = vectorstore.as_retriever()
+
+#     # Create the conversation chain
+#     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
+
+#     # Get the full response
+#     response = conversation_chain({"question": user_input})
+
+#     # Extract the 'answer' field from the response
+#     if 'answer' in response:
+#         full_response = response['answer']
+#     else:
+#         raise ValueError(f"Unexpected response format: {response}")
+
+#     # Split the full response into sentences or smaller chunks
+#     chunks = full_response.split('. ')  # Adjust this split as needed to control chunk size
+
+#     # Yield each chunk for smooth streaming
+#     for chunk in chunks:
+#         yield chunk
+
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
     # Initialize the OpenAI LLM
     llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7)
@@ -65,10 +94,13 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     else:
         raise ValueError(f"Unexpected response format: {response}")
 
-    # Split the full response into sentences or smaller chunks
-    chunks = full_response.split('. ')  # Adjust this split as needed to control chunk size
+    # Split the full response by sentences or smaller chunks
+    # This can be adjusted based on the length of each chunk
+    chunks = [full_response[i:i+500] for i in range(0, len(full_response), 500)]  # 500-char chunks
 
     # Yield each chunk for smooth streaming
     for chunk in chunks:
         yield chunk
+
+
 
