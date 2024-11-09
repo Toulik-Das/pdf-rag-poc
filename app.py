@@ -13,15 +13,16 @@ st.set_page_config(
     layout="wide",
 )
 
-def stream_response(chunks):
-    """Function to stream the response in Streamlit."""
+def stream_response_smoothly(full_response: str):
+    """Function to smoothly stream the response in Streamlit by writing character by character."""
     response_placeholder = st.empty()
     response_text = ""
 
-    for chunk in chunks:
-        response_text += chunk + '. '
+    # Iterate through each character of the full response
+    for char in full_response:
+        response_text += char
         response_placeholder.markdown(response_text)  # Update the response incrementally
-        time.sleep(0.5)  # Adjust the delay for how fast or slow you want the response to appear
+        time.sleep(0.05)  # Adjust the delay for smoother or faster typing effect
         
 # Title and description
 st.title("QueryWise 🧠")
