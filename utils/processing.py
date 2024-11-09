@@ -56,10 +56,17 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Create the conversation chain
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
-    # Get the full response (non-streaming)
+    # Get the full response
     response = conversation_chain({"question": user_input})
 
+    # Inspect the response structure and handle accordingly
+    if isinstance(response, dict) and 'text' in response:
+        full_response = response['text']
+    else:
+        # Log the entire response if 'text' is not found
+        print(f"Unexpected response structure: {response}")
+        raise ValueError("Response does not contain expected 'text' field.")
+
     # Simulate yielding portions of the response as markdown-compatible chunks
-    full_response = response['text']
     for sentence in full_response.split('. '):  # Adjust this split as needed to control chunk size
         yield sentence + '. '  # Yield each sentence followed by a period and space for clarity.
