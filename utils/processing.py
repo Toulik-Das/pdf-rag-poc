@@ -84,6 +84,7 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
         pinecone_documents.append({"text": text_content})
         
     combined_results = faiss_results + [Document(page_content=doc['text']) for doc in pinecone_documents]
+    print(combined_results)
 
     # Create the conversation chain
     #conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
