@@ -59,6 +59,7 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Use the chain to generate a response in real-time
     response_stream = conversation_chain.stream({"question": user_input})
 
-    # Yield each part of the response for real-time display
+    # Yield each chunk of the response directly as text
     for chunk in response_stream:
-        yield chunk["content"]
+        if chunk:  # Ensure the chunk is not empty
+            yield chunk
