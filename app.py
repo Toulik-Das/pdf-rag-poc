@@ -22,7 +22,7 @@ def stream_response_smoothly(full_response: str):
     for chunk in full_response:
         response_text += chunk
         response_placeholder.markdown(response_text)  # Update the response incrementally
-        time.sleep(0.05)  # Adjust the delay for smoother or faster typing effect
+        time.sleep(0.01)  # Adjust the delay for smoother or faster typing effect
         
 # Title and description
 st.title("QueryWise 🧠")
