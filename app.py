@@ -64,12 +64,13 @@ if api_key:
                 response_placeholder = st.empty()
                 response_text = ""
 
+                # Function to display the chat response in real-time
                 try:
                     # Get and display the response in a streaming fashion, handling each new token as it arrives
                     for token in get_chat_response(user_input, vectorstore, selected_model, api_key):
                         response_text += token
                         response_placeholder.markdown(response_text)  # Update full markdown output so far
-                        time.sleep(0.01)  # Simulate streaming effect
+                        time.sleep(0.01)  # Simulate streaming effect with a slight delay
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
                     response_placeholder.markdown("There was an error processing your request.")
