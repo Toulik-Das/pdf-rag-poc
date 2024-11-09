@@ -62,16 +62,12 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Log the entire response to inspect its structure
     print(f"Response structure: {response}")
 
-    # If the response structure is different from what we expect, log and raise an error
-    if isinstance(response, dict):
-        if 'text' in response:
-            full_response = response['text']
-        else:
-            print(f"Response does not contain 'text' field: {response}")
-            raise ValueError(f"Response does not contain expected 'text' field: {response}")
+    # Extract the 'answer' field from the response
+    if 'answer' in response:
+        full_response = response['answer']
     else:
-        print(f"Unexpected response type: {type(response)}. Full response: {response}")
-        raise ValueError(f"Unexpected response type: {type(response)}")
+        print(f"Unexpected response format: {response}")
+        raise ValueError(f"Unexpected response format: {response}")
 
     # Simulate yielding portions of the response as markdown-compatible chunks
     for sentence in full_response.split('. '):  # Adjust this split as needed to control chunk size
