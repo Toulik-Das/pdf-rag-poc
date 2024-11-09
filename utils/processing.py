@@ -6,6 +6,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
+from langchain.schema import Document
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Generator
@@ -73,16 +74,16 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
         include_values=True,
         include_metadata=True
     )
-
-    print(pinecone_results)
     
-    # New: Process Pinecone results to extract text from metadata
+    # Process Pinecone results to extract text from metadata if available, else from values
     pinecone_documents = []
     for match in pinecone_results['matches']:
-        # Assuming the 'text' field in metadata contains the relevant text content
-        pinecone_documents.append({"text": match['metadata'].get('text', '')})
+        text_content = match.get('metadata', {}).get('text', '')  # Use metadata if available
+        if not text_content:  # If metadata text is not available, fallback to `values`
+            text_content = " ".join(map(str, match.get('values', [])))
+        pinecone_documents.append({"text": text_content})
         
-    combined_results = faiss_results + pinecone_documents
+    combined_results = faiss_results + [Document(page_content=doc['text']) for doc in pinecone_documents]
 
     # Create the conversation chain
     #conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
