@@ -104,7 +104,7 @@ if api_key:
                         for chunk in get_chat_response(user_input, vectorstore, selected_model, api_key):
                             response_text += chunk
                             response_placeholder.markdown(response_text)  # Update full markdown output so far
-                            time.sleep(0.5)  # Simulate streaming effect
+                            time.sleep(0.05)  # Simulate streaming effect
 
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
