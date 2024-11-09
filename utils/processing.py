@@ -59,7 +59,7 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
     # Get the full response (in a streaming fashion)
-    response = conversation_chain({"question": user_input})
+    response = conversation_chain.invoke({"question": user_input})
 
     # Simulate yielding portions of the response as markdown-compatible chunks
     for sentence in response['text'].split('. '):  # Adjust this split as needed to control chunk size
