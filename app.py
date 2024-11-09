@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response
+from utils.processing import process_pdfs, initialize_vectorstore, get_chat_response, initialize_pinecone_vectorstore
 from dotenv import load_dotenv
 import time
 
@@ -34,6 +34,8 @@ with st.sidebar:
 # Initialize vectorstore and process PDFs only if the API key is provided
 if api_key:
     try:
+        pinecone_index = initialize_pinecone_vectorstore(PINECONE_API_KEY)
+        
         if uploaded_files:
             st.write("Processing documents 🧾 ")
             documents = process_pdfs(uploaded_files)
