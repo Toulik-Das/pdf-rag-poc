@@ -47,7 +47,7 @@ def process_pdfs(uploaded_files) -> List:
 # Function to get chat response without streaming
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
     # Initialize the OpenAI LLM
-    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7,stream=True)
+    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7)
 
     # Memory for the conversation
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
