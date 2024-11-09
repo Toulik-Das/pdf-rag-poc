@@ -6,14 +6,12 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chat_models import ChatOpenAI
-from langchain.schema import Document
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from typing import List, Generator
 
 # Function to initialize vector store with FAISS only if documents are present
 def initialize_vectorstore(api_key: str, documents: List) -> FAISS:
-    
     db_name = "pdf_knowledge_base"
     embeddings = OpenAIEmbeddings(api_key=api_key)
     
@@ -45,27 +43,23 @@ def process_pdfs(uploaded_files) -> List:
     
     return documents
 
-
-# Function to get chat response with real-time streaming
+# Function to get chat response without streaming
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
-    # Initialize the ChatOpenAI model with streaming enabled
-    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7, stream=True)
-    
-    # Prepare the conversation retriever
+    # Initialize the OpenAI LLM
+    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7,stream=True)
+
+    # Memory for the conversation
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+    # Get the retriever from the vectorstore
     retriever = vectorstore.as_retriever()
-    context = retriever.get_relevant_documents(user_input)
-    
-    # Prepare messages with retrieved context for the OpenAI chat model
-    messages = [{"role": "system", "content": "You are a helpful assistant."}]
-    for doc in context:
-        messages.append({"role": "system", "content": doc.page_content})
-    messages.append({"role": "user", "content": user_input})
-    
-    # Start streaming the response using LangChain’s model
-    response_stream = llm.stream(messages)
-    
-    # Yield each token for real-time display
-    for chunk in response_stream:
-        print(f"Chunk received: {chunk}")  # Debugging line to check each chunk received
-        if chunk and "content" in chunk: 
-            yield chunk["content"]
+
+    # Create the conversation chain
+    conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
+
+    # Get the full response (in a streaming fashion)
+    response = conversation_chain({"question": user_input})
+
+    # Simulate yielding portions of the response as markdown-compatible chunks
+    for sentence in response['text'].split('. '):  # Adjust this split as needed to control chunk size
+        yield sentence + '. '  # Yield each sentence followed by a period and space for clarity
