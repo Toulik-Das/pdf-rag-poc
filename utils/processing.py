@@ -89,7 +89,8 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
     #conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
     # NEW: Create conversation chain with combined results
-    retriever = FAISS.from_documents(combined_results, OpenAIEmbeddings(api_key=api_key)).as_retriever()
+    #retriever = FAISS.from_documents(combined_results, OpenAIEmbeddings(api_key=api_key)).as_retriever()
+    retriever = lambda: combined_results
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
     # Get the full response (in a streaming fashion)
