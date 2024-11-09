@@ -18,9 +18,9 @@ def stream_response_smoothly(full_response: str):
     response_placeholder = st.empty()
     response_text = ""
 
-    # Iterate through each character of the full response
-    for char in full_response:
-        response_text += char
+    # Iterate through each chunk of the response and stream it
+    for chunk in full_response:
+        response_text += chunk
         response_placeholder.markdown(response_text)  # Update the response incrementally
         time.sleep(0.05)  # Adjust the delay for smoother or faster typing effect
         
@@ -61,12 +61,12 @@ if api_key:
         # Chat history management
         if "chat_history" not in st.session_state:
             st.session_state["chat_history"] = []
-
+        
         # Display chat messages from history
         for message in st.session_state["chat_history"]:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
-
+        
         # Accept user input
         if user_input := st.chat_input("Ask a question about the content in your PDFs"):
             # Add user message to chat history
@@ -76,20 +76,19 @@ if api_key:
         
             # Get and stream the assistant response smoothly
             with st.chat_message("assistant"):
-                response_placeholder = st.empty()
                 try:
-                    # Get the full response
-                    full_response = get_chat_response(user_input, vectorstore, selected_model, api_key)
-                    
+                    # Get the full response in chunks
+                    full_response_chunks = get_chat_response(user_input, vectorstore, selected_model, api_key)
+        
                     # Stream the response smoothly
-                    stream_response_smoothly(full_response)
+                    for chunk in full_response_chunks:
+                        stream_response_smoothly(chunk)
         
                     # Save the assistant's final response in chat history
-                    st.session_state["chat_history"].append({"role": "assistant", "content": full_response})
+                    st.session_state["chat_history"].append({"role": "assistant", "content": chunk})
         
                 except Exception as e:
                     st.error(f"Error while fetching the response: {e}")
-                    response_placeholder.markdown("There was an error processing your request.")
 
         # Sidebar to toggle chat history visibility
         with st.sidebar:
