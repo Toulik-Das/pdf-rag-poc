@@ -73,7 +73,13 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Split the full response into words (instead of sentences or chunks)
     words = full_response.split()  # Split by spaces to get individual words
 
-    # Yield the words one at a time with a slight delay for smooth streaming
+    # Initialize variables for smooth markdown streaming
+    current_word = ""
     for word in words:
-        yield word + ' '  # Yield each word followed by a space
-        time.sleep(0.1)  # Adjust the delay for smoother or faster typing effect
+        current_word += word + " "  # Add the word with a space
+        yield current_word  # Yield the word with current markdown format applied
+
+        # Ensure proper markdown handling and delay for smooth streaming
+        time.sleep(0.05)  # Adjust the delay for smoother or faster typing effect
+        
+    return  # Optionally return the full response if needed after streaming
