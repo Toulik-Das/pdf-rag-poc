@@ -59,13 +59,19 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Get the full response
     response = conversation_chain({"question": user_input})
 
-    # Inspect the response structure and handle accordingly
-    if isinstance(response, dict) and 'text' in response:
-        full_response = response['text']
+    # Log the entire response to inspect its structure
+    print(f"Response structure: {response}")
+
+    # If the response structure is different from what we expect, log and raise an error
+    if isinstance(response, dict):
+        if 'text' in response:
+            full_response = response['text']
+        else:
+            print(f"Response does not contain 'text' field: {response}")
+            raise ValueError(f"Response does not contain expected 'text' field: {response}")
     else:
-        # Log the entire response if 'text' is not found
-        print(f"Unexpected response structure: {response}")
-        raise ValueError("Response does not contain expected 'text' field.")
+        print(f"Unexpected response type: {type(response)}. Full response: {response}")
+        raise ValueError(f"Unexpected response type: {type(response)}")
 
     # Simulate yielding portions of the response as markdown-compatible chunks
     for sentence in full_response.split('. '):  # Adjust this split as needed to control chunk size
