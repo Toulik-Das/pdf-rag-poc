@@ -70,7 +70,7 @@ def get_chat_response(user_input: str, vectorstore, pinecone_index, model_name: 
     query_vector = OpenAIEmbeddings(api_key=api_key).embed_documents([user_input])[0]
     pinecone_results = pinecone_index.query(
         vector=query_vector,
-        top_k=5,  # Top 5 results
+        top_k=50,  # Top 5 results
         include_values=True,
         include_metadata=True
     )
