@@ -69,8 +69,10 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
         print(f"Unexpected response format: {response}")
         raise ValueError(f"Unexpected response format: {response}")
 
-    # Split the full response into sentences or smaller chunks
-    chunks = full_response.split('. ')  # Adjust this split as needed to control chunk size
+    # Split the full response into words (instead of sentences or chunks)
+    words = full_response.split()  # Split by spaces to get individual words
 
-    # Simulate yielding portions of the response as markdown-compatible chunks
-    return chunks
+    # Yield the words one at a time with a slight delay for smooth streaming
+    for word in words:
+        yield word + ' '  # Yield each word followed by a space
+        time.sleep(0.1)  # Adjust the delay for smoother or faster typing effect
