@@ -45,6 +45,7 @@ def process_pdfs(uploaded_files) -> List:
     
     return documents
 
+
 # Function to get chat response with real-time streaming
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
     # Initialize the ChatOpenAI model with streaming enabled
@@ -59,7 +60,13 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Use the chain to generate a response in real-time
     response_stream = conversation_chain.stream({"question": user_input})
 
-    # Yield each chunk of the response directly as text
+    # Handle each chunk based on its structure
     for chunk in response_stream:
-        if chunk:  # Ensure the chunk is not empty
-            yield chunk
+        # Ensure chunk is not empty and handle as needed
+        if chunk:
+            # Check if chunk is a dictionary and contains 'content' as expected
+            if isinstance(chunk, dict) and 'content' in chunk:
+                yield chunk['content']
+            # If chunk is not in the expected format, yield it directly as a fallback
+            else:
+                yield str(chunk)
