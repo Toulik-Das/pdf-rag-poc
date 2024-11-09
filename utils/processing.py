@@ -43,9 +43,10 @@ def process_pdfs(uploaded_files) -> List:
     
     return documents
 
+# Function to get chat response without streaming
 def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: str):
     # Initialize the OpenAI LLM
-    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7)
+    llm = ChatOpenAI(api_key=api_key, model_name=model_name, temperature=0.7,stream=True)
 
     # Memory for the conversation
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -56,21 +57,9 @@ def get_chat_response(user_input: str, vectorstore, model_name: str, api_key: st
     # Create the conversation chain
     conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)
 
-    # Get the full response
+    # Get the full response (in a streaming fashion)
     response = conversation_chain({"question": user_input})
 
-    # Extract the 'answer' field from the response
-    if 'answer' in response:
-        full_response = response['answer']
-    else:
-        raise ValueError(f"Unexpected response format: {response}")
-
-    # Split the full response into sentences or smaller chunks
-    chunks = full_response.split('. ')  # Adjust this split as needed to control chunk size
-
-    # Yield each chunk for smooth streaming
-    for chunk in chunks:
-        yield chunk
-
-
-
+    # Simulate yielding portions of the response as markdown-compatible chunks
+    for sentence in response['answer'].split('. '):  # Adjust this split as needed to control chunk size
+        yield sentence + '. '  # Yield each sentence followed by a period and space for clarity
